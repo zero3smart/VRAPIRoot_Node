@@ -1,0 +1,27 @@
+{
+  "name": "VRRoot",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "bluebird": "^3.4.6",
+    "body-parser": "~1.15.1",
+    "cookie-parser": "~1.4.3",
+    "csv": "^1.1.0",
+    "debug": "~2.2.0",
+    "exceljs": "^0.2.29",
+    "express": "~4.13.4",
+    "fast-csv": "^2.3.0",
+    "jade": "~1.11.0",
+    "line-by-line": "^0.1.5",
+    "lodash": "^4.16.4",
+    "mkdirp": "^0.5.1",
+    "morgan": "~1.7.0",
+    "node-7z": "^0.4.0",
+    "serve-favicon": "~2.3.0",
+    "walk": "^2.3.9",
+    "xlsx": "^0.8.0"
+  }
+}

@@ -5,7 +5,7 @@ const responseHelper = require('./response');
 const fileHelper = require('./file');
 const zipHelper = require('./zip');
 const readerHelper = require('./reader');
-const validationHelper = require('./validate');
+const validationHelper = require('./validation/index');
 
 module.exports = {
     response: responseHelper,

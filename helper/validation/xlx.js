@@ -40,7 +40,13 @@ let readFromFileAndRemoveDupes = (filePath) => {
         });
 
         console.log('-------------- Found records: ' + totalRecords + ', Unique data: ' + data.length);
-        resolve(data);
+        resolve({
+            data: data,
+            report: {
+                type: 'duplicate',
+                count: (totalRecords - data.length)
+            }
+        });
     });
 };
 

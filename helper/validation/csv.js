@@ -37,7 +37,13 @@ let readFromFileAndRemoveDupes = (filePath) => {
 
                     console.log('-------------- Found records: ' + data.length + ', Unique data: ' + uniqueData.length);
 
-                    resolve(uniqueData);
+                    resolve({
+                        data: uniqueData,
+                        report: {
+                            type: 'duplicate',
+                            count: (data.length - uniqueData.length)
+                        }
+                    });
                 }
                 else {
                     resolve([]);

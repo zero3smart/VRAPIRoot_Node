@@ -25,5 +25,8 @@ module.exports = {
         //'zipx'
         'tgz',
         'tar.gz'
-    ]
+    ],
+    allowedEmailLength: 45,
+    allowedNumOfDots: 4,
+    allowedNumOfAtTheRateOf: 1
 };

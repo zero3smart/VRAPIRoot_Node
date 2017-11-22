@@ -28,5 +28,13 @@ module.exports = {
     ],
     allowedEmailLength: 45,
     allowedNumOfDots: 4,
-    allowedNumOfAtTheRateOf: 1
+    allowedNumOfAtTheRateOf: 1,
+    fuzzyMatchingDomains: [
+        'gmail.com',
+        'yahoo.com',
+        'hotmail.com',
+        'msn.com',
+        'aol.com',
+        'verizon.net'
+    ]
 };

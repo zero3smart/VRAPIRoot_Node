@@ -2,7 +2,10 @@
  * Created by titu on 10/25/16.
  */
 const settings = require('../../config').settings;
+const fuzzyMatching = require('fuzzy-matching');
 const _ = require('lodash');
+
+let fuzzyMatch = new fuzzyMatching(settings.fuzzyMatchingDomains);
 
 let lengthCheck = (email) => {
     return email.length <= settings.allowedEmailLength;
@@ -42,6 +45,16 @@ let botAddressCheck = (email) => {
     return true;
 };
 
+let fixMisSpelled = (email) => {
+    var domain = (email.split('@')).pop();
+    var fixedSpelling = fuzzyMatch.get(domain, { maxChanges: 2 }).value;
+
+    if(fixedSpelling) {
+        email = email.replace(domain, fixedSpelling);
+    }
+    return email;
+};
+
 let buildResultOb = (result, type) => {
     return {
         result: result,
@@ -53,12 +66,14 @@ let buildResultOb = (result, type) => {
 
 let validate = (dataCollection) => {
     var clearedEmails = [];
+    var email = null;
     var report = {
         'longemail': 0,
         'syntaxerror': 0,
-        'seeds': 0
+        'seeds': 0,
+        'fixedMisspelledDomains': 0
     };
-    var email = null;
+    var fixedEmail = null;
 
     dataCollection.forEach((data)=> {
         email = data[0];
@@ -91,6 +106,11 @@ let validate = (dataCollection) => {
             return;
         }
         else {
+            fixedEmail = fixMisSpelled(data[0]);
+            if(data[0] !== fixedEmail) {
+                ++report.fixedMisspelledDomains;
+                data[0] = fixedEmail;
+            }
             clearedEmails.push(data);
         }
 

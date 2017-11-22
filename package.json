@@ -14,6 +14,7 @@
     "exceljs": "^0.2.29",
     "express": "~4.13.4",
     "fast-csv": "^2.3.0",
+    "fuzzy-matching": "^0.4.3",
     "jade": "~1.11.0",
     "line-by-line": "^0.1.5",
     "lodash": "^4.16.4",

@@ -35,13 +35,13 @@ let readFromFileAndRemoveDupes = (filePath) => {
                         }
                     }
 
-                    console.log('-------------- Found records: ' + data.length + ', Unique data: ' + uniqueData.length);
+                    //console.log('-------------- Found records: ' + data.length + ', Unique data: ' + uniqueData.length);
 
                     resolve({
                         data: uniqueData,
                         report: {
-                            type: 'duplicate',
-                            count: (data.length - uniqueData.length)
+                            'totalRecords': data.length,
+                            'duplicate': (data.length - uniqueData.length)
                         }
                     });
                 }
@@ -56,12 +56,14 @@ let readFromFileAndRemoveDupes = (filePath) => {
     });
 };
 
-let save = (data, filePath) => {
+let save = (result, filePath) => {
     return new promise(function (resolve, reject) {
         let writeStream = fs.createWriteStream(filePath);
         writeStream.on('error', reject);
-        writeStream.on('finish', resolve);
-        csv.write(data, {headers: true}).pipe(writeStream);
+        writeStream.on('finish', function () {
+            resolve(result);
+        });
+        csv.write(result.data, {headers: true}).pipe(writeStream);
     });
 };
 

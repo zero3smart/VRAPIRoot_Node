@@ -64,51 +64,57 @@ let buildResultOb = (result, type) => {
     };
 };
 
-let validate = (dataCollection) => {
+let validate = (result) => {
+    var dataCollection = result.data;
     var clearedEmails = [];
     var email = null;
     var report = {
-        'longemail': 0,
-        'syntaxerror': 0,
-        'seeds': 0,
-        'fixedMisspelledDomains': 0
+        'longemail': [],
+        'syntaxerror': [],
+        'seeds': [],
+        'fixedMisspelledDomains': []
     };
     var fixedEmail = null;
+
+
+    if(result.report) {
+        report = _.merge(report, result.report);
+    }
 
     dataCollection.forEach((data)=> {
         email = data[0];
         if (!lengthCheck(email)) {
-            ++report.longemail;
+            report.longemail.push(email);
             return;
         }
         else if (!spaceCharacterCheck(email)) {
-            ++report.syntaxerror;
+            report.syntaxerror.push(email);
             return;
         }
         else if (!numOfDotOccurencesCheck(email)) {
-            ++report.syntaxerror;
+            report.syntaxerror.push(email);
             return;
         }
         else if (!numOfAtTheRateOfOccurencesCheck(email)) {
-            ++report.syntaxerror;
+            report.syntaxerror.push(email);
             return;
         }
         else if (!specialCharacterCheck(email)) {
-            ++report.syntaxerror;
+            report.syntaxerror.push(email);
             return;
         }
         else if (!asciiCharacterCheck(email)) {
-            ++report.syntaxerror;
+            report.syntaxerror.push(email);
             return;
         }
         else if (!botAddressCheck(email)) {
-            ++report.seeds;
+            report.seeds.push(email);
             return;
         }
         else {
             fixedEmail = fixMisSpelled(data[0]);
             if(data[0] !== fixedEmail) {
-                ++report.fixedMisspelledDomains;
+                report.fixedMisspelledDomains.push(fixedEmail);
                 data[0] = fixedEmail;
             }
             clearedEmails.push(data);

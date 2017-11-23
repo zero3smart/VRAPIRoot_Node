@@ -43,17 +43,17 @@ let readFromFileAndRemoveDupes = (filePath) => {
         resolve({
             data: data,
             report: {
-                type: 'duplicate',
-                count: (totalRecords - data.length)
+                'totalRecords': totalRecords,
+                'duplicate': (totalRecords - data.length)
             }
         });
     });
 };
 
-let save = (data, filePath) => {
+let save = (result, filePath) => {
     return new promise(function (resolve, reject) {
 
-        var wb = new Workbook(), ws = sheet_from_array_of_arrays(data);
+        var wb = new Workbook(), ws = sheet_from_array_of_arrays(result.data);
         var ws_name = "SheetJS";
         var fileName = filePath.split('.');
         var extension = fileName.pop();
@@ -68,7 +68,7 @@ let save = (data, filePath) => {
 
         XLSX.writeFile(wb, filePath);
 
-        resolve();
+        resolve(result);
     });
 };
 

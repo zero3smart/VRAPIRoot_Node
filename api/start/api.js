@@ -17,15 +17,19 @@ promise.config({
 module.exports = {
 
     clean: (request, response) => {
-        console.log('----- REQUEST FOUND -----');
+        console.log('----- REQUEST RECEIVED -----');
         console.log('params: ');
         console.log(request.query);
-        console.log('Cleaning started at: ' + new Date());
 
         let query = request.query || {};
         let dirInfo = {
             fileId: query.fileId,
             userName: query.userName,
+        };
+        let report = {
+            startTime: new Date(),
+            userName: query.userName,
+            fileId: query.fileId
         };
         let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId;
 
@@ -50,10 +54,17 @@ module.exports = {
             .then((files) => {
                 return helper.validation.start(directory, files);
             })
-            .then(() => {
-                console.log('Cleaning completed at: ' + new Date());
+            .then((result) => {
+                report.endTime = new Date();
+                if(_.isArray(result)) {
+                    result = result[0];
+                }
+                if(result.report) {
+                    report =_.merge(report, result.report);
+                }
+                printReport([report]);
                 responseHelper.success(response, {
-                    msg: 'Cleaning completed'
+                    msg: report
                 });
             })
             .catch((e) => {
@@ -73,4 +84,14 @@ module.exports = {
         });
 
     }
+};
+
+let printReport = (reports) => {
+    _.each(reports, (report)=>{
+        console.log('------REPORT-----');
+        for(var key in report) {
+            console.log(key, ' : ', report[key]);
+        }
+    });
+
 };

@@ -64,7 +64,7 @@ module.exports = {
                 }
                 printReport([report]);
                 responseHelper.success(response, {
-                    msg: report
+                    report: report
                 });
             })
             .catch((e) => {

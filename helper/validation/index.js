@@ -6,7 +6,6 @@ const fileHelper = require('../file');
 const csvHandler = require('./csv');
 const xlxHandler = require('./xlx');
 const syntaxValidation = require('./syntax');
-const _ = require('lodash');
 
 let startValidation = (directory, files) => {
     return promise.map(files, function (file) {
@@ -20,26 +19,13 @@ let readFileAndRemoveDuplicates = (directory, fileName) => {
     let filePath = directory + '/' + fileName;
     let uniqueDirectory = directory + '/unique/';
     let uniqueFilePath = uniqueDirectory + fileName;
-    let handler = getFileExtension(fileName).toLowerCase() === 'csv' ? csvHandler : xlxHandler;
-    let reports = [];
+    let handler = getHandler(getFileExtension(fileName).toLowerCase());
 
     return fileHelper.ensureDirectoryExists(uniqueDirectory)
         .then(() => handler.readFromFileAndRemoveDupes(filePath))
-        .then((result)=>{
-            if(result.report) {
-                reports.push(result.report);
-            }
-            return syntaxValidation.validate(result.data);
-        })
+        .then(syntaxValidation.validate)
         .then((result) => {
-            if(result.report) {
-                reports.push(result.report);
-            }
-            printReport(reports);
-            return result;
-        })
-        .then((result) => {
-            return handler.save(result.data, uniqueFilePath)
+            return handler.save(result, uniqueFilePath)
         });
 };
 
@@ -47,14 +33,26 @@ let getFileExtension = (fileName) => {
     return fileName.split('.').pop();
 };
 
-let printReport = (reports) => {
-    _.each(reports, (report)=>{
-        console.log('-----------');
-        for(var key in report) {
-            console.log(key, ' -> ', report[key]);
-        }
-    });
+let getHandler = (fileExtension) => {
 
+    var handler = null;
+
+    switch (fileExtension) {
+        case 'txt':
+        case 'csv':
+        case 'tsv':
+        case 'text':
+            handler = csvHandler;
+            break;
+        case 'xlsm':
+        case 'xlsx':
+        case 'xls':
+        case 'ods':
+        case 'xlt':
+            handler = xlxHandler;
+            break;
+    }
+    return handler;
 };
 
 module.exports = {

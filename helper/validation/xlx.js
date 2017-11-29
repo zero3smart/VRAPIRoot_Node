@@ -3,33 +3,42 @@
  */
 const promise = require('bluebird');
 const fs = require('fs');
-const csv = require('fast-csv');
+const csvHelper = require('./csv');
 const _ = require('lodash');
 const parse = require('csv-parse');
+const babyparse = require('babyparse');
 const XLSX = promise.promisifyAll(require('xlsx'));
 
-let readFromFileAndRemoveDupes = (filePath) => {
+let readFromFileAndRemoveDupes = (filePath, header) => {
 
     return new promise((resolve, reject) => {
         let workbook = null;
+        let containsHeader = false;
+        let emailIndex = header.emailIndex || 0;
+        let emailColumnHeader = null;
         try {
-            workbook = XLSX.readFile(filePath);
+            workbook = XLSX.readFile(filePath, {sheetRows: 0});
         }
         catch (e) {
             resolve([]);
         }
+        debugger;
         let data = [];
         let uniqueOb = {};
         var sheetNames = workbook.SheetNames;
         var totalRecords = 0;
         var adr = null;
-
-        sheetNames.forEach(function (sheetName) { /* iterate through sheets */
+        var value = null;
+        if (_.isObject(header) && header.header === true) {
+            containsHeader = true;
+        }
+        /*sheetNames.forEach(function (sheetName) { /!* iterate through sheets *!/
             var worksheet = workbook.Sheets[sheetName];
             for (var cell in worksheet) {
-                /* all keys that do not begin with "!" correspond to cell addresses */
+                /!* all keys that do not begin with "!" correspond to cell addresses *!/
                 if (cell[0] !== '!') {
-                    adr = worksheet[cell].v ? worksheet[cell].v.toLowerCase() : null;
+                    value = worksheet[cell].v;
+                    adr = (value && _.isString(value)) ? value.toLowerCase() : value;
                     if (!uniqueOb[adr] && !_.isNil(adr)) {
                         uniqueOb[adr] = true;
                         data.push([adr]);
@@ -37,8 +46,50 @@ let readFromFileAndRemoveDupes = (filePath) => {
                     ++totalRecords;
                 }
             }
-        });
+        });*/
 
+        /*1. {header: true} — when the file itself contains the header row.
+        2. {firstname:0, lastname:1, email:2} — when the file doesn't contain the header row, but there are multiple columns.
+        3. no header info object only in a case when the file contains only a single column with no header as row.
+            So, if the file has the single column but a header row, then we need to send the header object like {header: true}*/
+
+
+        /*
+        When there is header in the file then can do the json; that is, {header : true}
+         var jsonOb = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet 1"]);
+         */
+        var parseData = null;
+
+        debugger;
+
+        if(containsHeader) {
+            parseData = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"]);
+        }
+        else {
+
+            var csvData = babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets["Sheet1"]), {
+                header: containsHeader,
+                complete: (results) => {
+                    debugger;
+                    parseData = csvHelper.onParseComplete(results, header);
+                    debugger;
+
+                }
+            });
+
+        }
+        /*
+        When there is no header then we can convert the spreadsheet to csv
+        //no header as row
+        //no problem with any number of columns
+        //header object can be defined to find the email column other wise take the first column
+        //XLSX.utils.sheet_to_csv(workbook.Sheets["Sheet1"])
+         */
+
+
+        console.log((filePath.split('/')).pop());
+        var tempData = getData(workbook)
+        debugger;
         console.log('-------------- Found records: ' + totalRecords + ', Unique data: ' + data.length);
         resolve({
             data: data,
@@ -48,6 +99,33 @@ let readFromFileAndRemoveDupes = (filePath) => {
             }
         });
     });
+};
+
+let getData = (workbook, headerInfo) => {
+
+    var sheetNames = workbook.SheetNames;
+    var worksheet = null;
+    var csvPresentation = null;
+    var csvData = null;
+
+    sheetNames.forEach(function (sheetName) {
+        worksheet = workbook.Sheets[sheetName];
+    });
+
+    headerInfo = headerInfo || {};
+
+    if(headerInfo.header) {
+        // so it is up to the file as it contains a header row
+        return XLSX.utils.sheet_to_json(worksheet);
+    }
+    else {
+        //the file doesn't contains the header row
+        //need to find that if the headerInfo contains a mapping like {email: 2... }
+        csvPresentation = XLSX.utils.sheet_to_csv(worksheet);
+        csvData = babyparse.parse(csvPresentation).data;
+        return csvData;
+
+    }
 };
 
 let save = (result, filePath) => {

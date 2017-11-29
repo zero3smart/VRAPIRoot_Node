@@ -7,13 +7,13 @@ const csvHandler = require('./csv');
 const xlxHandler = require('./xlx');
 const syntaxValidation = require('./syntax');
 
-let startValidation = (directory, files) => {
+let startValidation = (directory, files, header) => {
     return promise.map(files, function (file) {
-        return readFileAndRemoveDuplicates(directory, file);
+        return readFileAndRemoveDuplicates(directory, file, header);
     });
 };
 
-let readFileAndRemoveDuplicates = (directory, fileName) => {
+let readFileAndRemoveDuplicates = (directory, fileName, header) => {
     console.log('# parsing file: ' + fileName);
 
     let filePath = directory + '/' + fileName;
@@ -22,7 +22,7 @@ let readFileAndRemoveDuplicates = (directory, fileName) => {
     let handler = getHandler(getFileExtension(fileName).toLowerCase());
 
     return fileHelper.ensureDirectoryExists(uniqueDirectory)
-        .then(() => handler.readFromFileAndRemoveDupes(filePath))
+        .then(() => handler.readFromFileAndRemoveDupes(filePath, header))
         .then(syntaxValidation.validate)
         .then((result) => {
             return handler.save(result, uniqueFilePath)

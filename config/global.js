@@ -5,5 +5,10 @@
 const path = require('path');
 
 module.exports = {
-    userUploadsDir: path.resolve(__dirname, '../useruploads')
+    userUploadsDir: path.resolve(__dirname, '../useruploads'),
+    emailKeyNames: [
+        'email',
+        'emailaddress',
+        'mail'
+    ]
 };

@@ -16,16 +16,18 @@ promise.config({
 
 module.exports = {
 
-    clean: (request, response) => {
+    clean: (request, response, params) => {
+        debugger;
         console.log('----- REQUEST RECEIVED -----');
         console.log('params: ');
-        console.log(request.query);
+        console.log(request.body);
 
-        let query = request.query || {};
+        let query = request.body || {};
         let dirInfo = {
             fileId: query.fileId,
             userName: query.userName,
         };
+        let header = query.header || {};
         let report = {
             startTime: new Date(),
             userName: query.userName,
@@ -52,7 +54,7 @@ module.exports = {
                 return files;
             })
             .then((files) => {
-                return helper.validation.start(directory, files);
+                return helper.validation.start(directory, files, header);
             })
             .then((result) => {
                 report.endTime = new Date();

@@ -6,22 +6,24 @@ const fs = require('fs');
 const csv = require('fast-csv');
 const _ = require('lodash');
 const parse = require('csv-parse');
+const papaparse = require('babyparse');
 
 let readFromFileAndRemoveDupes = (filePath) => {
-    let readStream = fs.createReadStream(filePath);
     let csvData = {};
     let uniqueData = [];
 
     return new promise((resolve, reject) => {
 
-        readStream.on("error", reject);
+        papaparse.parseFiles(filePath, {
+            complete: function(results) {
+                var data = results.data;
 
-        let parser = parse({delimiter: ','}, (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                if (data && data.length) {
+                if(results.meta) {
+                    console.log('--- meta  ----')
+                    console.log(results.meta)
+                }
+
+                if(data && data.length) {
                     data.forEach(function (record) {
                         if (_.isArray(record) && record.length && !csvData[record[0]]) {
                             record[0] = _.toLower(record[0]);
@@ -48,8 +50,11 @@ let readFromFileAndRemoveDupes = (filePath) => {
                 else {
                     resolve([]);
                 }
-            }
-
+            },
+            error: function(err, file, inputElem, reason)
+            {
+                reject(err);
+            },
         });
 
         readStream.pipe(parser);

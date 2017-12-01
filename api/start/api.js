@@ -17,7 +17,6 @@ promise.config({
 module.exports = {
 
     clean: (request, response, params) => {
-        debugger;
         console.log('----- REQUEST RECEIVED -----');
         console.log('params: ');
         console.log(request.body);

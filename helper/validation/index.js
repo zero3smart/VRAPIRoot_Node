@@ -20,12 +20,19 @@ let readFileAndRemoveDuplicates = (directory, fileName, header) => {
     let uniqueDirectory = directory + '/unique/';
     let uniqueFilePath = uniqueDirectory + fileName;
     let handler = getHandler(getFileExtension(fileName).toLowerCase());
+    let delimiter = null;
 
     return fileHelper.ensureDirectoryExists(uniqueDirectory)
         .then(() => handler.readFromFileAndRemoveDupes(filePath, header))
-        .then(syntaxValidation.validate)
         .then((result) => {
-            return handler.save(result, uniqueFilePath)
+            if(result.delimiter) {
+                delimiter = result.delimiter;
+            }
+
+            return syntaxValidation.validate(result, header);
+        })
+        .then((result) => {
+            return handler.save(result, uniqueFilePath, header, delimiter);
         });
 };
 

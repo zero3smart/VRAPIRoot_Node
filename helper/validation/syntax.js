@@ -4,6 +4,7 @@
 const settings = require('../../config').settings;
 const fuzzyMatching = require('fuzzy-matching');
 const _ = require('lodash');
+const global = require('../../config/global');
 
 let fuzzyMatch = new fuzzyMatching(settings.fuzzyMatchingDomains);
 
@@ -64,7 +65,7 @@ let buildResultOb = (result, type) => {
     };
 };
 
-let validate = (result) => {
+let validate = (result, header) => {
     var dataCollection = result.data;
     var clearedEmails = [];
     var email = null;
@@ -75,14 +76,33 @@ let validate = (result) => {
         'fixedMisspelledDomains': []
     };
     var fixedEmail = null;
-
+    var containsHeader = false;
+    if (_.isObject(header) && header.header === true) {
+        containsHeader = true;
+    }
+    let emailIndex = header.emailIndex || 0;
+    let emailColumnHeader = null;
 
     if(result.report) {
         report = _.merge(report, result.report);
     }
 
+    if (containsHeader) {
+        for (var key in dataCollection[0]) {
+            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                emailColumnHeader = key;
+                break;
+            }
+        }
+    }
     dataCollection.forEach((data)=> {
-        email = data[0];
+        if(containsHeader) {
+            email = data[emailColumnHeader];
+        }
+        else {
+            email = data[emailIndex];
+        }
+
         if (!lengthCheck(email)) {
             report.longemail.push(email);
             return;
@@ -112,10 +132,10 @@ let validate = (result) => {
             return;
         }
         else {
-            fixedEmail = fixMisSpelled(data[0]);
-            if(data[0] !== fixedEmail) {
+            fixedEmail = fixMisSpelled(email);
+            if(email !== fixedEmail) {
                 report.fixedMisspelledDomains.push(fixedEmail);
-                data[0] = fixedEmail;
+                email = fixedEmail;
             }
             clearedEmails.push(data);
         }

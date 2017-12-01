@@ -27,71 +27,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
             complete: (results) => {
                 resolve(onParseComplete(results, header));
             },
-            complete1: function (results) {
-                var data = results.data;
-                /*if(results.meta) {
-                 console.log('--- meta  ----')
-                 console.log(results.meta)
-                 }*/
-
-                if (data && data.length) {
-
-                    /*
-                     Detect that if the data is in form of object or in array
-
-                     if in Object then that is a key/value pair and confirms
-                     to be a file parsed having header.
-
-                     if in Array then a file which doesn't have header
-                     */
-
-
-                    if (containsHeader) { // So there is a header
-                        //determine the email field name/column header for email
-                        for (var key in data[0]) {
-                            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
-                                emailColumnHeader = key;
-                                break;
-                            }
-                        }
-                        data.forEach(function (record) {
-                            if (record[emailColumnHeader] && !csvData[record[emailColumnHeader]]) {
-                                record[emailColumnHeader] = _.toLower(record[emailColumnHeader]);
-                                csvData[record[emailColumnHeader]] = record;
-                            }
-                        });
-                    }
-                    else { // No header provided
-                        data.forEach(function (record) {
-                            if (record.length && !csvData[record[emailIndex]]) {
-                                record[emailIndex] = _.toLower(record[emailIndex]);
-                                csvData[record[emailIndex]] = record;
-                            }
-                        });
-                    }
-
-                    for (var key in csvData) {
-                        if (csvData.hasOwnProperty(key)) {
-                            uniqueData.push(csvData[key]);
-                        }
-                    }
-
-                    console.log('-------------- Found records: ' + data.length + ', Unique data: ' + uniqueData.length);
-
-                    debugger;
-                    resolve({
-                        data: uniqueData,
-                        report: {
-                            'totalRecords': data.length,
-                            'duplicate': (data.length - uniqueData.length)
-                        }
-                    });
-                }
-                else {
-                    resolve([]);
-                }
-            },
-            error: function (err, file, inputElem, reason) {
+            error: (err, file, inputElem, reason) => {
                 reject(err);
             },
         });
@@ -111,10 +47,10 @@ let onParseComplete = (results, header) => {
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
     }
-    /*if(results.meta) {
-     console.log('--- meta  ----')
-     console.log(results.meta)
-     }*/
+    if (results.meta) {
+        console.log('--- meta  ----')
+        console.log(results.meta)
+    }
 
     if (data && data.length) {
 
@@ -158,11 +94,9 @@ let onParseComplete = (results, header) => {
             }
         }
 
-        console.log('-------------- Found records: ' + data.length + ', Unique data: ' + uniqueData.length);
-
-        debugger;
         return {
             data: uniqueData,
+            delimiter: results.meta.delimiter,
             report: {
                 'totalRecords': data.length,
                 'duplicate': (data.length - uniqueData.length)
@@ -175,16 +109,63 @@ let onParseComplete = (results, header) => {
 };
 
 
-let save = (result, filePath) => {
+let save = (result, filePath, header, delimiter) => {
     return new promise(function (resolve, reject) {
+        console.log('File had the delimiter: ' + delimiter);
         let writeStream = fs.createWriteStream(filePath);
+        let containsHeader = false;
+
+        if (_.isObject(header) && header.header === true) {
+            containsHeader = true;
+        }
         writeStream.on('error', reject);
         writeStream.on('finish', function () {
             resolve(result);
         });
-        csv.write(result.data, {headers: true}).pipe(writeStream);
+        csv.write(result.data, {
+            headers: containsHeader,
+            delimiter: delimiter
+        }).pipe(writeStream);
     });
 };
+
+let parseFiles = function ParseFiles(_input, _config)
+{
+    if (Array.isArray(_input)) {
+        var results = [];
+        _input.forEach(function(input) {
+            if(typeof input === 'object')
+                results.push(ParseFiles(input.file, input.config));
+            else
+                results.push(ParseFiles(input, _config));
+        });
+        return results;
+    } else {
+        var results = {
+            data: [],
+            errors: []
+        };
+        if ((/(\.csv|\.txt|\.tsv|\.text)$/).test(_input)) {
+            try {
+                var contents = fs.readFileSync(_input).toString();
+                return this.parse(contents, _config);
+            } catch (err) {
+                results.errors.push(err);
+                return results;
+            }
+        } else {
+            results.errors.push({
+                type: '',
+                code: '',
+                message: 'Unsupported file type.',
+                row: ''
+            });
+            return results;
+        }
+    }
+};
+parseFiles.bind(babyparse);
+babyparse.parseFiles = parseFiles;
 
 module.exports = {
     readFromFileAndRemoveDupes: readFromFileAndRemoveDupes,

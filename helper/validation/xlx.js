@@ -22,7 +22,6 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         catch (e) {
             resolve([]);
         }
-        debugger;
         let data = [];
         let uniqueOb = {};
         var sheetNames = workbook.SheetNames;
@@ -48,56 +47,37 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
             }
         });*/
 
-        /*1. {header: true} — when the file itself contains the header row.
-        2. {firstname:0, lastname:1, email:2} — when the file doesn't contain the header row, but there are multiple columns.
-        3. no header info object only in a case when the file contains only a single column with no header as row.
-            So, if the file has the single column but a header row, then we need to send the header object like {header: true}*/
-
-
-        /*
-        When there is header in the file then can do the json; that is, {header : true}
-         var jsonOb = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet 1"]);
-         */
         var parseData = null;
 
-        debugger;
-
         if(containsHeader) {
-            parseData = XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"]);
+            parseData = babyparse.unparse(XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"]));
+            parseData = babyparse.parse(parseData, {
+                header: containsHeader,
+                complete: (results) => {
+                    parseData = csvHelper.onParseComplete(results, header);
+                }
+            });
         }
         else {
 
             var csvData = babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets["Sheet1"]), {
                 header: containsHeader,
                 complete: (results) => {
-                    debugger;
                     parseData = csvHelper.onParseComplete(results, header);
-                    debugger;
-
                 }
             });
 
         }
-        /*
-        When there is no header then we can convert the spreadsheet to csv
-        //no header as row
-        //no problem with any number of columns
-        //header object can be defined to find the email column other wise take the first column
-        //XLSX.utils.sheet_to_csv(workbook.Sheets["Sheet1"])
-         */
-
 
         console.log((filePath.split('/')).pop());
-        var tempData = getData(workbook)
-        debugger;
-        console.log('-------------- Found records: ' + totalRecords + ', Unique data: ' + data.length);
-        resolve({
-            data: data,
+        /*resolve({
+            data: parseData,
             report: {
                 'totalRecords': totalRecords,
-                'duplicate': (totalRecords - data.length)
+                'duplicate': (totalRecords - parseData.length)
             }
-        });
+        });*/
+        resolve(parseData);
     });
 };
 
@@ -131,7 +111,9 @@ let getData = (workbook, headerInfo) => {
 let save = (result, filePath) => {
     return new promise(function (resolve, reject) {
 
-        var wb = new Workbook(), ws = sheet_from_array_of_arrays(result.data);
+        var wb = new Workbook();
+        var ws = sheet_from_array_of_arrays(result.data);
+        var temp = XLSX.utils.csv.ex
         var ws_name = "SheetJS";
         var fileName = filePath.split('.');
         var extension = fileName.pop();
@@ -152,7 +134,7 @@ let save = (result, filePath) => {
 
 module.exports = {
     readFromFileAndRemoveDupes: readFromFileAndRemoveDupes,
-    save: save
+    zsave: save
 };
 
 function datenum(v, date1904) {

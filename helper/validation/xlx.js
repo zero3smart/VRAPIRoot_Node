@@ -108,13 +108,36 @@ let getData = (workbook, headerInfo) => {
     }
 };
 
-let save = (result, filePath) => {
+let save = (result, filePath, header) => {
     return new promise(function (resolve, reject) {
+        let containsHeader = false;
+        let data = [];
+        let temp = [];
 
+        if (_.isObject(header) && header.header === true) {
+            containsHeader = true;
+            data = [];
+
+            for (var key in result.data[0]) {
+                temp.push(key);
+            }
+
+            data.push(temp);
+
+            result.data.forEach(function (d) {
+                temp = [];
+                for(var key in d) {
+                    temp.push(d[key]);
+                }
+                data.push(temp);
+            });
+        }
+        else {
+            data = result.data;
+        }
         var wb = new Workbook();
-        var ws = sheet_from_array_of_arrays(result.data);
-        var temp = XLSX.utils.csv.ex
-        var ws_name = "SheetJS";
+        var ws = sheet_from_array_of_arrays(data);
+        var ws_name = "Clean Sheet";
         var fileName = filePath.split('.');
         var extension = fileName.pop();
 
@@ -134,7 +157,7 @@ let save = (result, filePath) => {
 
 module.exports = {
     readFromFileAndRemoveDupes: readFromFileAndRemoveDupes,
-    zsave: save
+    save: save
 };
 
 function datenum(v, date1904) {

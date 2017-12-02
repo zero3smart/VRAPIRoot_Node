@@ -57,13 +57,18 @@ module.exports = {
             })
             .then((result) => {
                 report.endTime = new Date();
-                if(_.isArray(result)) {
-                    result = result[0];
+                if(!_.isArray(result)) {
+                    result = [result];
                 }
-                if(result.report) {
-                    report =_.merge(report, result.report);
-                }
-                printReport([report]);
+                result.forEach((r) => {
+                    if(r.report) {
+                        var tempReport = {};
+                        temp[r.report.fileName] = r.report;
+                        report =_.merge(report, temp);
+                    }
+                });
+
+                printReport(report);
                 responseHelper.success(response, {
                     report: report
                 });

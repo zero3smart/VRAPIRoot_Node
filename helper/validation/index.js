@@ -32,6 +32,9 @@ let readFileAndRemoveDuplicates = (directory, fileName, header) => {
             return syntaxValidation.validate(result, header);
         })
         .then((result) => {
+            if(result.report) {
+                result.report.fileName = fileName;
+            }
             return handler.save(result, uniqueFilePath, header, delimiter);
         });
 };

@@ -16,7 +16,6 @@ let startValidation = (directory, files) => {
 };
 
 let readFileAndRemoveDuplicates = (directory, fileName) => {
-    console.log('parsing file: ' + fileName);
 
     let filePath = directory + '/' + fileName;
     let uniqueDirectory = directory + '/unique/';
@@ -64,7 +63,6 @@ let makeLowerCaseAndRemoveDuplicates = (data) => {
     let uniqueData = [];
 
     if (data && data.length) {
-        console.log('checking data: ' + data.length);
         data.forEach(function (record) {
             if (_.isArray(record) && record.length && !csvData[record[0]]) {
                 record[0] = _.toLower(record[0]);
@@ -77,8 +75,6 @@ let makeLowerCaseAndRemoveDuplicates = (data) => {
                 uniqueData.push(csvData[key]);
             }
         }
-
-        console.log('Found unique data: ' + uniqueData.length);
 
         return uniqueData;
     }

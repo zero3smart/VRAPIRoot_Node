@@ -56,13 +56,16 @@ module.exports = {
                 return helper.validation.start(directory, files, header);
             })
             .then((result) => {
+                debugger;
+                var temp = {};
+
                 report.endTime = new Date();
                 if(!_.isArray(result)) {
                     result = [result];
                 }
                 result.forEach((r) => {
                     if(r.report) {
-                        var tempReport = {};
+                        temp = {};
                         temp[r.report.fileName] = r.report;
                         report =_.merge(report, temp);
                     }
@@ -92,12 +95,16 @@ module.exports = {
     }
 };
 
-let printReport = (reports) => {
-    _.each(reports, (report)=>{
+let printReport = (report) => {
+    /*_.each(reports, (report)=>{
         console.log('------REPORT-----');
         for(var key in report) {
             console.log(key, ' : ', report[key]);
         }
-    });
+    });*/
+    console.log('------Report-----')
+    for(var key in report) {
+        console.log(key, ' : ', report[key]);
+    }
 
 };

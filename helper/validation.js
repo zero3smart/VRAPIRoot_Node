@@ -15,7 +15,6 @@ let startValidation = (directory, files) => {
 };
 
 let readFileAndRemoveDuplicates = (directory, fileName) => {
-    console.log('parsing file: ' + fileName);
 
     let filePath = directory + '/' + fileName;
     let uniqueDirectory = directory + '/unique/';
@@ -52,7 +51,6 @@ let readFromFile = (filePath) => {
         }
     });
 
-    console.log('-------------- Found records: ' + totalRecords + ', Unique data: ' + data.length);
     return (data);
 };
 

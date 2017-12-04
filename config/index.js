@@ -10,6 +10,6 @@ const messageConfig = require('./message');
 module.exports = {
     global: globalConfig,
     settings: settingsConfig,
-    database: databaseConfig,
-    message: messageConfig
+    message: messageConfig,
+    databaseSettings: databaseConfig
 };

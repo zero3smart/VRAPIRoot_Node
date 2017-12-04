@@ -10,11 +10,29 @@ const syntaxValidation = require('./syntax');
 let startValidation = (directory, files, header) => {
     return promise.map(files, function (file) {
         return readFileAndRemoveDuplicates(directory, file, header);
-    });
+    });/*.then((result) => {
+        /!*report.endTime = new Date();
+        if(!_.isArray(result)) {
+            result = [result];
+        }
+        result.forEach((r) => {
+            if(r.report) {
+                var tempReport = {};
+                temp[r.report.fileName] = r.report;
+                report =_.merge(report, temp);
+            }
+        });
+
+        printReport(report);
+        responseHelper.success(response, {
+            report: report
+        });*!/
+        console.log(result);
+        return result;
+    });*/
 };
 
 let readFileAndRemoveDuplicates = (directory, fileName, header) => {
-    console.log('# parsing file: ' + fileName);
 
     let filePath = directory + '/' + fileName;
     let uniqueDirectory = directory + '/unique/';

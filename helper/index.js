@@ -6,11 +6,13 @@ const fileHelper = require('./file');
 const zipHelper = require('./zip');
 const readerHelper = require('./reader');
 const validationHelper = require('./validation/index');
+const database = require('./database');
 
 module.exports = {
     response: responseHelper,
     file: fileHelper,
     zip: zipHelper,
     reader: readerHelper,
-    validation: validationHelper
+    validation: validationHelper,
+    database: database
 };

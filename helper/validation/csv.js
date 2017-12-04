@@ -10,11 +10,7 @@ const babyparse = require('babyparse');
 const global = require('../../config/global');
 
 let readFromFileAndRemoveDupes = (filePath, header) => {
-    let csvData = {};
-    let uniqueData = [];
     let containsHeader = false;
-    let emailIndex = header.emailIndex || 0;
-    let emailColumnHeader = null;
 
     return new promise((resolve, reject) => {
 
@@ -46,10 +42,6 @@ let onParseComplete = (results, header) => {
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
-    }
-    if (results.meta) {
-        console.log('--- meta  ----')
-        console.log(results.meta)
     }
 
     if (data && data.length) {
@@ -111,7 +103,6 @@ let onParseComplete = (results, header) => {
 
 let save = (result, filePath, header, delimiter) => {
     return new promise(function (resolve, reject) {
-        console.log('File had the delimiter: ' + delimiter);
         let writeStream = fs.createWriteStream(filePath);
         let containsHeader = false;
 

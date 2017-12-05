@@ -56,7 +56,6 @@ module.exports = {
                 return helper.validation.start(directory, files, header);
             })
             .then((result) => {
-                debugger;
                 var temp = {};
 
                 report.endTime = new Date();
@@ -66,12 +65,13 @@ module.exports = {
                 result.forEach((r) => {
                     if(r.report) {
                         temp = {};
+                        r.report['totalRecordsAfterClean'] = r.data.length;
                         temp[r.report.fileName] = r.report;
                         report =_.merge(report, temp);
                     }
                 });
 
-                printReport(report);
+                printReport({data: result.data, report: report});
                 responseHelper.success(response, {
                     report: report
                 });

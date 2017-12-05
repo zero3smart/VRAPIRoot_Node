@@ -38,10 +38,21 @@ let initializeDatabase = () => {
         });
     });
 
-    dbClient.connect(connectionString, function(err, dbClient) {
-        console.log("Mongo client connected successfully with database.");
-        module.exports.dbClient = dbClient;
-    });
+    dbClient.connect(connectionString, {
+        promiseLibrary: blueBird
+    })
+        .then((dbClient) => {
+            console.log("Mongo client connected successfully with database.");
+            module.exports.dbClient = dbClient;
+        })
+        .catch((e) => {
+            console.log(e);
+        });
+
+    /*dbClient.connect(connectionString, function(err, dbClient) {
+     console.log("Mongo client connected successfully with database.");
+     module.exports.dbClient = dbClient;
+     });*/
 
 };
 

@@ -135,7 +135,12 @@ let validate = (result, header) => {
             fixedEmail = fixMisSpelled(email);
             if(email !== fixedEmail) {
                 report.fixedMisspelledDomains.push(fixedEmail);
-                email = fixedEmail;
+                if(containsHeader) {
+                    data[emailColumnHeader] = fixedEmail;
+                }
+                else {
+                    data[emailIndex] = fixedEmail;
+                }
             }
             clearedEmails.push(data);
         }

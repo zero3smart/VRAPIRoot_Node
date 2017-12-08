@@ -4,7 +4,7 @@
 const staticListEmailsRemover = require('./emails');
 const staticListDomainsRemover = require('./domains');
 const staticListEndingsRemover = require('./endings');
-const words = require('./words');
+const staticListBadWords = require('./words');
 
 
 let start = (result, header) => {
@@ -14,6 +14,9 @@ let start = (result, header) => {
         })
         .then((result) => {
             return staticListEndingsRemover.remove(result, header);
+        })
+        .then((result) => {
+            return staticListBadWords.remove(result, header);
         });
 }
 

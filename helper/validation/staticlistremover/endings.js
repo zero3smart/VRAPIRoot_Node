@@ -73,7 +73,7 @@ let remove = (results, header) => {
                         .then(function (queryResult) {
                             let matchedRecords = queryResult.matchedRecords;
                             emailsToRemoved = [];
-                            debugger;
+
                             if (!matchedRecords.length) {
                                 return;
                             }

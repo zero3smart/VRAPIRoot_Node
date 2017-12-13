@@ -1,12 +1,15 @@
 /**
  * Created by titu on 10/25/16.
  */
+const commonHelper = require('../common');
 const settings = require('../../config').settings;
 const fuzzyMatching = require('fuzzy-matching');
 const _ = require('lodash');
 const global = require('../../config/global');
 
-let fuzzyMatch = new fuzzyMatching(settings.fuzzyMatchingDomains);
+let getFuzzyMatcherDomains = () => {
+    return commonHelper.getWhiteListedDomains();
+};
 
 let lengthCheck = (email) => {
     return email.length <= settings.allowedEmailLength;
@@ -46,7 +49,7 @@ let botAddressCheck = (email) => {
     return true;
 };
 
-let fixMisSpelled = (email) => {
+let fixMisSpelled = (email, fuzzyMatch) => {
     var domain = (email.split('@')).pop();
     var fixedSpelling = fuzzyMatch.get(domain, { maxChanges: 2 }).value;
 
@@ -66,6 +69,20 @@ let buildResultOb = (result, type) => {
 };
 
 let validate = (result, header) => {
+    return getFuzzyMatcherDomains()
+        .then((domains) => {
+            return {
+                result: result,
+                header: header,
+                fuzzyMatch: new fuzzyMatching(domains)
+            };
+        })
+        .then( (params) => {
+            return validateSyntax(params.result, params.header, params.fuzzyMatch);
+        });
+};
+
+let validateSyntax = (result, header, fuzzyMatch) => {
     var dataCollection = result.data;
     var clearedEmails = [];
     var email = null;
@@ -132,7 +149,7 @@ let validate = (result, header) => {
             return;
         }
         else {
-            fixedEmail = fixMisSpelled(email);
+            fixedEmail = fixMisSpelled(email, fuzzyMatch);
             if(email !== fixedEmail) {
                 report.fixedMisspelledDomains.push(fixedEmail);
                 if(containsHeader) {

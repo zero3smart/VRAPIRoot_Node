@@ -73,7 +73,7 @@ let onParseComplete = (results, header) => {
         }
         else { // No header provided
             data.forEach(function (record) {
-                if (record.length && !csvData[record[emailIndex]]) {
+                if (record.length && record[emailIndex] && !csvData[record[emailIndex]]) {
                     record[emailIndex] = _.toLower(record[emailIndex]);
                     csvData[record[emailIndex]] = record;
                 }

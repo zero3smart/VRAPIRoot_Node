@@ -55,6 +55,9 @@ module.exports = {
             .then((files) => {
                 return helper.validation.start(directory, files, header);
             })
+            .then((results) => {
+                return helper.verification.start(results, header);
+            })
             .then((result) => {
                 var temp = {};
 
@@ -102,7 +105,7 @@ let printReport = (report) => {
             console.log(key, ' : ', report[key]);
         }
     });*/
-    console.log('------Report-----')
+    console.log('------Report-----');
     for(var key in report) {
         console.log(key, ' : ', report[key]);
     }

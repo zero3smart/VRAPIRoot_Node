@@ -24,6 +24,7 @@
     "mongoose": "^4.6.5",
     "morgan": "~1.7.0",
     "node-7z": "^0.4.0",
+    "node-sass": "^4.7.2",
     "serve-favicon": "~2.3.0",
     "walk": "^2.3.9",
     "xlsx": "^0.8.0"

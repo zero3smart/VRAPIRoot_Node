@@ -9,6 +9,7 @@ const zipHelper = helper.zip;
 const config = require('../../config');
 const _ = require('lodash');
 const promise = require('bluebird');
+const jsonfile = require('jsonfile');
 
 promise.config({
     cancellation: true
@@ -53,9 +54,11 @@ module.exports = {
                 return files;
             })
             .then((files) => {
+                console.log('Starting validation...');
                 return helper.validation.start(directory, files, header);
             })
             .then((results) => {
+                console.log('Starting verification...');
                 return helper.verification.start(results, header);
             })
             .then((result) => {
@@ -74,7 +77,7 @@ module.exports = {
                     }
                 });
 
-                printReport({data: result.data, report: report});
+                printReport({data: result.data, report: report, directory: directory});
                 responseHelper.success(response, {
                     report: report
                 });
@@ -105,9 +108,14 @@ let printReport = (report) => {
             console.log(key, ' : ', report[key]);
         }
     });*/
+    console.log('')
     console.log('------Report-----');
     for(var key in report) {
         console.log(key, ' : ', report[key]);
     }
+    var file = report.directory + '/unique/report.json'
 
+    jsonfile.writeFile(file, report, {spaces: 2}, function(err) {
+        console.error(err);
+    });
 };

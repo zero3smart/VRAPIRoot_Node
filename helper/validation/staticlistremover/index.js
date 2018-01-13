@@ -9,17 +9,22 @@ const staticListRoles = require('./role');
 
 
 let start = (result, header) => {
+    console.log('starting with staticListEmailsRemover...');
     return staticListEmailsRemover.remove (result, header)
         .then((result) => {
+            console.log('starting with staticListDomainsRemover...');
             return staticListDomainsRemover.remove(result, header);
         })
         .then((result) => {
+            console.log('starting with staticListEndingsRemover...');
             return staticListEndingsRemover.remove(result, header);
         })
         .then((result) => {
+            console.log('starting with staticListBadWords...');
             return staticListBadWords.remove(result, header);
         })
         .then((result) => {
+            console.log('starting with staticListRoles...');
             return staticListRoles.remove(result, header);
         });
 }

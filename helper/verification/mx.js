@@ -40,7 +40,6 @@ let checkEmail = (results, header) => {
                         })
                         .catch((err) => {
                             if (err.code === 'ENOTFOUND') {
-                                console.log('Failed! ', err.hostname);
                                 failedDomains.push(err.hostname);
                             }
                         });

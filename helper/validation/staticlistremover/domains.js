@@ -46,23 +46,33 @@ let remove = (results, header) => {
         return dbClient.listCollections({name: /static_list_domains/})
             .toArray()
             .then((collections) => {
-                console.log(_.map(collections, 'name'));
                 collections = _.map(collections, 'name');
 
                 return promise.map(collections, (collection) => {
 
                     return new promise(function (resolve, reject) {
-                        dbClient.collection(collection).find({
-                            domain: {
-                                $in: listOfDomains
-                            }
-                        }, {domain: 1, _id: 0})
-                            .toArray(function (err, matchedRecords) {
+                        dbClient.collection(collection).find({}, {domain: 1, _id: 0})
+                            .toArray(function (err, recordsInCollection) {
                                 if (err) {
-                                    reject(err)
+                                    reject(err);
                                 }
-                                resolve({matchedRecords: matchedRecords, collection: collection});
-                            })
+                                else {
+                                    var matchedRecords = _.chain(recordsInCollection)
+                                        .compact()
+                                        .remove(function (record) {
+                                            return !_.isEmpty(record);
+                                        })
+                                        .map(function (record) {
+                                            return record.domain.toLowerCase();
+                                        })
+                                        .intersection(listOfDomains)
+                                        .value();
+
+                                    //TODO: nedd to do a _.difference to update the result.data
+                                    console.log('Got matchedRecords for collection in Static domain comparison: ' + collection + ' : '+ matchedRecords.length);
+                                    resolve({matchedRecords: matchedRecords, collection: collection});
+                                }
+                            });
                     })
                         .then(function (queryResult) {
                             let matchedRecords = queryResult.matchedRecords;

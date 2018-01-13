@@ -43,30 +43,39 @@ let remove = (results, header) => {
         return dbClient.listCollections({name: /static_list_email/})
             .toArray()
             .then((collections) => {
-                console.log(_.map(collections, 'name'));
                 collections = _.map(collections, 'name');
 
                 return promise.map(collections, (collection) => {
 
                     return new promise(function (resolve, reject) {
-                        dbClient.collection(collection).find({
-                            email: {
-                                $in: listOfEmails
-                            }
-                        }, {email: 1, _id: 0})
-                            .toArray(function (err, matchedRecords) {
+                        dbClient.collection(collection).find({}, {email: 1, _id: 0})
+                            .toArray(function (err, recordsInCollection) {
                                 if (err) {
                                     reject(err)
                                 }
-                                resolve({matchedRecords: matchedRecords, collection: collection});
-                            })
+                                else {
+                                    var matchedRecords = _.chain(recordsInCollection)
+                                        .compact()
+                                        .remove(function (record) {
+                                            return !_.isEmpty(record);
+                                        })
+                                        .map(function (record) {
+                                            return record.email.toLowerCase();
+                                        })
+                                        .intersection(listOfEmails)
+                                        .value();
+
+                                    //TODO: nedd to do a _.difference to update the result.data
+                                    console.log('Got matchedRecords for collection in Static email comparison: ' + collection + ' : '+ matchedRecords.length);
+                                    resolve({matchedRecords: matchedRecords, collection: collection});
+                                }
+                            });
                     })
                         .then(function (queryResult) {
                             if (!queryResult.matchedRecords.length) {
                                 return;
                             }
                             queryResult.matchedRecords = _.map(queryResult.matchedRecords, 'email');
-                            console.log(queryResult.matchedRecords);
                             emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
                             result.report[collection] = queryResult.matchedRecords;
                             listOfEmails = _.difference(listOfEmails, queryResult.matchedRecords);

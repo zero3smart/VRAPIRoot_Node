@@ -56,11 +56,12 @@ let remove = (results, header) => {
                                 else {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
-                                        .remove(function (record) {
-                                            return !_.isEmpty(record);
-                                        })
-                                        .map(function (record) {
-                                            return record.email.toLowerCase();
+                                        .map(function (record, i) {
+                                            if(!record.email) {
+                                                console.log('Found an email with problem at ', i, ' : ' , record);
+                                                return null;
+                                            }
+                                            return record.email.toString().toLowerCase();
                                         })
                                         .intersection(listOfEmails)
                                         .value();
@@ -75,7 +76,6 @@ let remove = (results, header) => {
                             if (!queryResult.matchedRecords.length) {
                                 return;
                             }
-                            queryResult.matchedRecords = _.map(queryResult.matchedRecords, 'email');
                             emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
                             result.report[collection] = queryResult.matchedRecords;
                             listOfEmails = _.difference(listOfEmails, queryResult.matchedRecords);

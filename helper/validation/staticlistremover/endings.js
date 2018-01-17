@@ -65,11 +65,12 @@ let remove = (results, header) => {
                                 else {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
-                                        .remove(function (record) {
-                                            return !_.isEmpty(record);
-                                        })
-                                        .map(function (record) {
-                                            return record.ending.toLowerCase();
+                                        .map(function (record, i) {
+                                            if(!record.ending) {
+                                                console.log('Found a ending with problem at ', i, ' : ' , record);
+                                                return null;
+                                            }
+                                            return record.ending.toString().toLowerCase();
                                         })
                                         .intersection(listOfEndings)
                                         .value();
@@ -87,7 +88,6 @@ let remove = (results, header) => {
                             if (!matchedRecords.length) {
                                 return;
                             }
-                            matchedRecords = _.map(matchedRecords, 'ending');
 
                             matchedRecords.forEach(function (endings) {
                                 if (containsHeader) {

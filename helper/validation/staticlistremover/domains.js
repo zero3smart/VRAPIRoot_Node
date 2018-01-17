@@ -51,7 +51,7 @@ let remove = (results, header) => {
                 return promise.map(collections, (collection) => {
 
                     return new promise(function (resolve, reject) {
-                        dbClient.collection(collection).find({}, {domain: 1, _id: 0})
+                        dbClient.collection(collection).find({domain : { $ne: ""}}, {domain: 1, _id: 0})
                             .toArray(function (err, recordsInCollection) {
                                 if (err) {
                                     reject(err);
@@ -59,11 +59,12 @@ let remove = (results, header) => {
                                 else {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
-                                        .remove(function (record) {
-                                            return !_.isEmpty(record);
-                                        })
-                                        .map(function (record) {
-                                            return record.domain.toLowerCase();
+                                        .map(function (record, i) {
+                                            if(!record.domain) {
+                                                console.log('Found a domain with problem at ', i, ' : ' , record);
+                                                return null;
+                                            }
+                                            return record.domain.toString().toLowerCase();
                                         })
                                         .intersection(listOfDomains)
                                         .value();
@@ -80,7 +81,6 @@ let remove = (results, header) => {
                             if (!matchedRecords.length) {
                                 return;
                             }
-                            matchedRecords = _.map(matchedRecords, 'domain');
 
                             matchedRecords.forEach(function (domain) {
                                 if (containsHeader) {

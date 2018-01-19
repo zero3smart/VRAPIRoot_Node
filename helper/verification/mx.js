@@ -20,7 +20,6 @@ let checkEmail = (results, header) => {
                 failedDomains = [];
                 listOfEmails = commonHelper.getEmailListFromResult(result, headerInfo);
 
-                console.log('total records were : ' + listOfEmails.length);
                 domainsList = _.chain(listOfEmails)
                     .map(function (email) {
                         if (email.indexOf('@')) {
@@ -30,7 +29,7 @@ let checkEmail = (results, header) => {
                     .uniq()
                     .difference(whiteListedDomains).value();
 
-                console.log('will check against mx for : ' + domainsList.length + ' records');
+                console.log('need mx check for : ' + domainsList.length + ' domain');
 
                 return promise.map(domainsList, (domain) => {
 
@@ -46,6 +45,8 @@ let checkEmail = (results, header) => {
 
                 })
                     .then(()=> {
+                        var emailsToRemoved = [];
+
                         if (failedDomains.length) {
                             result.report['mx'] = [];
 
@@ -53,10 +54,26 @@ let checkEmail = (results, header) => {
                                 if (_.includes(failedDomains, email.split('@')[1])) {
                                     if (result.report) {
                                         result.report['mx'].push(email);
+                                        emailsToRemoved.push(email);
                                         return false;
                                     }
                                     return true;
                                 }
+                            });
+
+
+                            emailsToRemoved.forEach(function (email) {
+                                if (headerInfo.containsHeader) {
+                                    _.remove(result.data, function (d) {
+                                        return d[headerInfo.emailColumnHeader] === email;
+                                    });
+                                }
+                                else {
+                                    _.remove(result.data, function (d) {
+                                        return d[headerInfo.emailIndex] === email;
+                                    });
+                                }
+
                             });
                         }
                     });

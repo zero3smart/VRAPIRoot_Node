@@ -63,6 +63,7 @@ let remove = (results, header) => {
                                     reject(err);
                                 }
                                 else {
+                                    console.log('Retreived ', recordsInCollection.length, ' records from ', collection);
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
                                         .map(function (record, i) {

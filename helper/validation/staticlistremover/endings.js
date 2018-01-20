@@ -14,8 +14,8 @@ let remove = (results, header) => {
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
     let listOfEndings = [];
-    let emailsToRemoved = [];
-    let report = {};
+    let emailsToRemove = [];
+    let ending = null;
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
@@ -35,7 +35,9 @@ let remove = (results, header) => {
 
         if (containsHeader) {
             listOfEndings = _.map(result.data, function(record) {
-                return commonHelper.getEmailParts(record[emailColumnHeader]).endings;
+                ending = commonHelper.getEmailParts(record[emailColumnHeader]).endings;
+                record.ending = ending;
+                return ending;
             })
                 .filter(function (v) {
                     return !_.isNil(v);
@@ -43,7 +45,9 @@ let remove = (results, header) => {
         }
         else {
             listOfEndings = _.map(result.data, function (record) {
-                return commonHelper.getEmailParts(record[emailIndex]).endings;
+                ending = commonHelper.getEmailParts(record[emailIndex]).endings;
+                record.ending = ending;
+                return ending;
             })
                 .filter(function (v) {
                     return !_.isNil(v);
@@ -84,37 +88,31 @@ let remove = (results, header) => {
                     })
                         .then(function (queryResult) {
                             let matchedRecords = queryResult.matchedRecords;
-                            emailsToRemoved = [];
+                            emailsToRemove = [];
+                            result.report[queryResult.collection] = [];
 
                             if (!matchedRecords.length) {
                                 return;
                             }
 
-                            matchedRecords.forEach(function (endings) {
-                                if (containsHeader) {
-                                    _.remove(result.data, function (d) {
-                                        if(commonHelper.getEmailParts(d[emailColumnHeader]).endings === endings) {
-                                            emailsToRemoved.push(d[emailColumnHeader]);
-                                            return true;
-                                        }
-                                        return false;
-                                    });
-                                }
-                                else {
-                                    _.remove(result.data, function (d) {
-                                        if(commonHelper.getEmailParts(d[emailIndex]).endings === endings) {
-                                            emailsToRemoved.push(d[emailIndex]);
-                                            return true;
-                                        }
-                                        return false;
-                                    });
+                            result.data.forEach(function(email, i){
+                                if(_.includes(matchedRecords, email.ending)) {
+                                    result.report[queryResult.collection].push(containsHeader ? email[emailColumnHeader] : email[emailIndex]);
+                                    emailsToRemove.push(email);
                                 }
                             });
 
-                            result.report[collection] = emailsToRemoved;
+                            console.log('Found ', emailsToRemove.length, ' emails to remove while matching with : ', queryResult.collection);
+                            console.log('Before comparing with ', queryResult.collection, ' total records were: ', result.data.length);
+                            result.data = _.difference(result.data, emailsToRemove);
+                            console.log('After comparing with ', queryResult.collection, ' total records are: ', result.data.length);
+
                             listOfEndings = _.difference(listOfEndings, queryResult.matchedRecords);
+                            console.log('For ', queryResult.collection, ' comparison and clean is done. returning now.');
                             return;
-                        })
+
+                        });
+
                 });
 
             })

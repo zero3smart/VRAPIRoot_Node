@@ -46,10 +46,9 @@ let checkEmail = (results, header) => {
                 })
                     .then(()=> {
                         var emailsToRemoved = [];
+                        result.report['mx'] = [];
 
                         if (failedDomains.length) {
-                            result.report['mx'] = [];
-
                             _.remove(listOfEmails, function (email) {
                                 if (_.includes(failedDomains, email.split('@')[1])) {
                                     if (result.report) {
@@ -60,7 +59,6 @@ let checkEmail = (results, header) => {
                                     return true;
                                 }
                             });
-
 
                             emailsToRemoved.forEach(function (email) {
                                 if (headerInfo.containsHeader) {

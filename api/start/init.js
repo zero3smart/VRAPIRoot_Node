@@ -7,6 +7,7 @@ const api = require('./api');
 let initStart = (app) => {
     //app.get('/clean', api.clean);
     app.post('/clean', api.clean);
+    app.get('/search', api.search)
 };
 
 module.exports = initStart;

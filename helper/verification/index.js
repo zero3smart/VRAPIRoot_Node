@@ -6,7 +6,7 @@ const mxHandler = require('./mx');
 
 let start = (results, header) => {
     console.log('starting with mxHandler.checkEmail...');
-    return mxHandler.checkEmail(results, header)
+    return mxHandler.checkEmail(results, header);
 };
 
 module.exports = {

@@ -2,14 +2,16 @@
  * Created by titu on 10/17/16.
  */
 
-const responseHelper = require('../../helper').response;
 const helper = require('../../helper');
+const responseHelper = helper.response;
 const fileHelper = helper.file;
 const zipHelper = helper.zip;
+const searchHelper = helper.search;
 const config = require('../../config');
 const _ = require('lodash');
 const promise = require('bluebird');
 const jsonfile = require('jsonfile');
+const Time = require('time-diff');
 
 promise.config({
     cancellation: true
@@ -17,6 +19,23 @@ promise.config({
 
 module.exports = {
 
+    search: (request, response, params) => {
+        let time = new Time();
+        let email = request.query.email;
+
+        if (_.isNil(email)) {
+            responseHelper.failure(response, {
+                message: config.message.missing_parameters_service_erorr
+            });
+            return;
+        }
+        time.start('search');
+        searchHelper.startSearch(email)
+            .then((result) => {
+                result[0].timeRequired = time.end('search')
+                responseHelper.success(response, result);
+            });
+    },
     clean: (request, response, params) => {
         console.log('----- REQUEST RECEIVED -----');
         console.log('params: ');
@@ -41,7 +60,8 @@ module.exports = {
             });
             return;
         }
-
+        let time = new Time();
+        time.start('clean');
         let steps = fileHelper.prepareFiles(directory)
             .then((files) => {
                 if (_.isEmpty(files)) {
@@ -76,7 +96,7 @@ module.exports = {
                         report =_.merge(report, temp);
                     }
                 });
-
+                report.timeRequired = time.end('clean');
                 printReport({data: result.data, report: report, directory: directory});
                 responseHelper.success(response, {
                     report: report

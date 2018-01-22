@@ -8,6 +8,7 @@ const readerHelper = require('./reader');
 const validationHelper = require('./validation/index');
 const verificationHelper = require('./verification/index');
 const database = require('./database');
+const searchHelper = require('./search');
 
 module.exports = {
     response: responseHelper,
@@ -16,5 +17,6 @@ module.exports = {
     reader: readerHelper,
     validation: validationHelper,
     verification: verificationHelper,
-    database: database
+    database: database,
+    search: searchHelper
 };

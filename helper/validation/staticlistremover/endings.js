@@ -51,7 +51,7 @@ let remove = (results, header) => {
             })
                 .filter(function (v) {
                     return !_.isNil(v);
-                });;
+                });
         }
         return dbClient.listCollections({name: /static_list_endings/})
             .toArray()
@@ -95,7 +95,7 @@ let remove = (results, header) => {
                                 return;
                             }
 
-                            result.data.forEach(function(email, i){
+                            result.data.forEach(function(email){
                                 if(_.includes(matchedRecords, email.ending)) {
                                     result.report[queryResult.collection].push(containsHeader ? email[emailColumnHeader] : email[emailIndex]);
                                     emailsToRemove.push(email);
@@ -121,6 +121,44 @@ let remove = (results, header) => {
 
 };
 
+let search = (result) => {
+
+    let dbClient = dbHelper.dbClient;
+    let ending = commonHelper.getEmailParts(result.email).endings;
+    if (!ending) {
+        return result;
+    }
+    return dbClient.listCollections({name: /static_list_endings/})
+        .toArray()
+        .then((collections) => {
+            collections = _.map(collections, 'name');
+
+            return promise.map(collections, (collection) => {
+                return new promise(function (resolve, reject) {
+                    dbClient.collection(collection).findOne({
+                        ending: ending
+                    }, {}, function (err, match) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            if (match) {
+                                result.report[collection] = match.ending;
+                                result.failed = true;
+                            }
+                            resolve(result);
+                        }
+                    });
+                })
+            });
+
+        })
+        .then(()=> result);
+
+};
+
+
 module.exports = {
-    remove: remove
+    remove: remove,
+    search: search
 };

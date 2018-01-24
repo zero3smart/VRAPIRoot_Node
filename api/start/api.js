@@ -19,7 +19,7 @@ promise.config({
 
 module.exports = {
 
-    search: (request, response, params) => {
+    search: (request, response) => {
         let time = new Time();
         let email = request.query.email;
 
@@ -32,7 +32,7 @@ module.exports = {
         time.start('search');
         searchHelper.startSearch(email)
             .then((result) => {
-                result[0].timeRequired = time.end('search')
+                result.timeRequired = time.end('search');
                 responseHelper.success(response, result);
             });
     },
@@ -128,12 +128,12 @@ let printReport = (report) => {
             console.log(key, ' : ', report[key]);
         }
     });*/
-    console.log('')
+    console.log('');
     console.log('------Report-----');
     for(var key in report) {
         console.log(key, ' : ', report[key]);
     }
-    var file = report.directory + '/unique/report.json'
+    var file = report.directory + '/unique/report.json';
 
     jsonfile.writeFile(file, report, {spaces: 2}, function(err) {
         console.error(err);

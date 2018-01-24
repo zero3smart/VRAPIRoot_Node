@@ -14,7 +14,6 @@ let remove = (results, header) => {
     let emailColumnHeader = null;
     let listOfEmails = [];
     let emailsToRemoved = [];
-    let report = {};
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
@@ -106,6 +105,41 @@ let remove = (results, header) => {
 
 };
 
+let search = (result) => {
+
+    let dbClient = dbHelper.dbClient;
+
+    return dbClient.listCollections({name: /static_list_email/})
+        .toArray()
+        .then((collections) => {
+            collections = _.map(collections, 'name');
+
+            return promise.map(collections, (collection) => {
+                return new promise(function (resolve, reject) {
+                    dbClient.collection(collection).findOne({
+                        //email:  { $regex : new RegExp(result.email, "i") }
+                        email: result.email
+                    }, {}, function (err, match) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            if (match) {
+                                result.report[collection] = match.email;
+                                result.failed = true;
+                            }
+                            resolve(result);
+                        }
+                    });
+                })
+            });
+
+        })
+        .then(()=> result);
+
+};
+
 module.exports = {
-    remove: remove
+    remove: remove,
+    search: search
 };

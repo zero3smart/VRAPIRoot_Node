@@ -15,7 +15,6 @@ let remove = (results, header) => {
     let emailColumnHeader = null;
     let listOfDomains = [];
     let emailsToRemove = [];
-    let report = {};
     let domain = null;
 
     if (_.isObject(header) && header.header === true) {
@@ -90,7 +89,7 @@ let remove = (results, header) => {
                                 return;
                             }
 
-                            result.data.forEach(function(email, i){
+                            result.data.forEach(function(email){
                                 if(_.includes(matchedRecords, email.domain)) {
                                     result.report[queryResult.collection].push(containsHeader ? email[emailColumnHeader] : email[emailIndex]);
                                     emailsToRemove.push(email);
@@ -114,6 +113,41 @@ let remove = (results, header) => {
 
 };
 
+let search = (result) => {
+
+    let dbClient = dbHelper.dbClient;
+    let domain = commonHelper.getEmailParts(result.email).domain;
+
+    return dbClient.listCollections({name: /static_list_domains/})
+        .toArray()
+        .then((collections) => {
+            collections = _.map(collections, 'name');
+
+            return promise.map(collections, (collection) => {
+                return new promise(function (resolve, reject) {
+                    dbClient.collection(collection).findOne({
+                        domain: domain
+                    }, {}, function (err, match) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            if (match) {
+                                result.report[collection] = match.domain;
+                                result.failed = true;
+                            }
+                            resolve(result);
+                        }
+                    });
+                })
+            });
+
+        })
+        .then(()=> result);
+
+};
+
 module.exports = {
-    remove: remove
+    remove: remove,
+    search: search
 };

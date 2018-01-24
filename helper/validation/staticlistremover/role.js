@@ -9,6 +9,7 @@ const _ = require('lodash');
 const promise = require('bluebird');
 const global = require('../../../config/global');
 const commonHelper = require('../../common');
+const collection = 'static_list_roles';
 
 let remove = (results, header) => {
 
@@ -18,7 +19,6 @@ let remove = (results, header) => {
     let emailColumnHeader = null;
     let listOfEmails = [];
     let emailsToRemoved = [];
-    let collection = 'static_list_roles';
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
@@ -64,7 +64,7 @@ let remove = (results, header) => {
                 roles.forEach(function (role) {
                     if (containsHeader) {
                         _.remove(result.data, function (d) {
-                            if(commonHelper.getEmailParts(d[emailColumnHeader]).user === role) {
+                            if (commonHelper.getEmailParts(d[emailColumnHeader]).user === role) {
                                 emailsToRemoved.push(d[emailColumnHeader]);
                                 return true;
                             }
@@ -73,7 +73,7 @@ let remove = (results, header) => {
                     }
                     else {
                         _.remove(result.data, function (d) {
-                            if(commonHelper.getEmailParts(d[emailIndex]).user === role) {
+                            if (commonHelper.getEmailParts(d[emailIndex]).user === role) {
                                 emailsToRemoved.push(d[emailIndex]);
                                 return true;
                             }
@@ -90,6 +90,33 @@ let remove = (results, header) => {
 
 };
 
+let search = (result) => {
+
+    let dbClient = dbHelper.dbClient;
+
+    return new promise(function (resolve, reject) {
+        dbClient.collection(collection).find({}, {role: 1, _id: 0})
+            .toArray(function (err, roles) {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    _.each(roles, function (role) {
+                        if (role.role && commonHelper.getEmailParts(result.email).user.toLowerCase() === role.role.toLowerCase()) {
+                            result.report[collection] = role.role;
+                            result.failed = true;
+                            return false;
+                        }
+                    });
+                    resolve(result);
+                }
+            });
+    })
+        .then(()=> result);
+
+};
+
 module.exports = {
-    remove: remove
+    remove: remove,
+    search: search
 };

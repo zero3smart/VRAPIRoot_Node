@@ -133,7 +133,7 @@ let printReport = (report) => {
     for(var key in report) {
         console.log(key, ' : ', report[key]);
     }
-    var file = report.directory + '/unique/report.json';
+    var file = report.directory + '/clean/report.json';
 
     jsonfile.writeFile(file, report, {spaces: 2}, function(err) {
         console.error(err);

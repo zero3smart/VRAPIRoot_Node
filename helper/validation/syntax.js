@@ -59,13 +59,15 @@ let fixMisSpelled = (email, fuzzyMatch) => {
     return email;
 };
 
-let buildResultOb = (result, type) => {
-    return {
-        result: result,
-        report: {
-            type: type
-        }
-    };
+let fixLatinCharacters = (email) => {
+    var matches_array = email.match(global.latinCapitalLettersRegex);
+
+    if(matches_array && matches_array.length) {
+        matches_array.forEach((match) => {
+            email = email.replace(match, global.latingEnglishMapper[match.toUpperCase()]);
+        });
+    }
+    return email;
 };
 
 let validate = (result, header) => {
@@ -87,12 +89,14 @@ let validateSyntax = (result, header, fuzzyMatch) => {
     var clearedEmails = [];
     var email = null;
     var report = {
-        'longemail': [],
-        'syntaxerror': [],
-        'seeds': [],
-        'fixedMisspelledDomains': []
+        "LongEmails": [],
+        "SyntaxErrors": [],
+        "Seeds": [],
+        "FixedMisSpelledDomains": [],
+        "FixedLatinLetters": []
     };
-    var fixedEmail = null;
+    var fixedMisSpelledEmail = null;
+    var fixedLatinEmail = null;
     var containsHeader = false;
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
@@ -121,46 +125,60 @@ let validateSyntax = (result, header, fuzzyMatch) => {
         }
 
         if (!lengthCheck(email)) {
-            report.longemail.push(email);
+            report.LongEmails.push(email);
             return;
         }
         else if (!spaceCharacterCheck(email)) {
-            report.syntaxerror.push(email);
+            report.SyntaxErrors.push(email);
             return;
         }
         else if (!numOfDotOccurencesCheck(email)) {
-            report.syntaxerror.push(email);
+            report.SyntaxErrors.push(email);
             return;
         }
         else if (!numOfAtTheRateOfOccurencesCheck(email)) {
-            report.syntaxerror.push(email);
+            report.SyntaxErrors.push(email);
             return;
         }
         else if (!specialCharacterCheck(email)) {
-            report.syntaxerror.push(email);
+            report.SyntaxErrors.push(email);
             return;
         }
         else if (!asciiCharacterCheck(email)) {
-            report.syntaxerror.push(email);
+            report.SyntaxErrors.push(email);
             return;
         }
         else if (!botAddressCheck(email)) {
-            report.seeds.push(email);
+            report.Seeds.push(email);
             return;
         }
-        else {
-            fixedEmail = fixMisSpelled(email, fuzzyMatch);
-            if(email !== fixedEmail) {
-                report.fixedMisspelledDomains.push(fixedEmail);
-                if(containsHeader) {
-                    data[emailColumnHeader] = fixedEmail;
-                }
-                else {
-                    data[emailIndex] = fixedEmail;
-                }
+
+        fixedMisSpelledEmail = fixMisSpelled(email, fuzzyMatch);
+        if(email !== fixedMisSpelledEmail) {
+            report.FixedMisSpelledDomains.push(fixedMisSpelledEmail);
+            if(containsHeader) {
+                data[emailColumnHeader] = fixedMisSpelledEmail;
+            }
+            else {
+                data[emailIndex] = fixedMisSpelledEmail;
             }
             clearedEmails.push(data);
+            return;
         }
+
+        fixedLatinEmail = fixLatinCharacters(email);
+
+        if(email !== fixedLatinEmail) {
+            report.FixedLatinLetters.push(fixedLatinEmail);
+            if(containsHeader) {
+                data[emailColumnHeader] = fixedMisSpelledEmail;
+            }
+            else {
+                data[emailIndex] = fixedMisSpelledEmail;
+            }
+        }
+
+        clearedEmails.push(data);
 
     });
 

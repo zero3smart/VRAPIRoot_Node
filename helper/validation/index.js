@@ -3,10 +3,10 @@
  */
 const promise = require('bluebird');
 const fileHelper = require('../file');
-const csvHandler = require('./csv');
-const xlxHandler = require('./xlx');
 const syntaxValidation = require('./syntax');
 const staticRemover = require('./staticlistremover/index');
+const commonHelper = require('../common');
+const settings = require('../../config/settings');
 
 let startValidation = (directory, files, header) => {
     return promise.map(files, function (file) {
@@ -19,52 +19,27 @@ let startValidation = (directory, files, header) => {
 let readFileAndRemoveDuplicates = (directory, fileName, header) => {
 
     let filePath = directory + '/' + fileName;
-    let cleanDirectory = directory + '/clean/';
-    let uniqueFilePath = cleanDirectory + fileName;
-    let handler = getHandler(getFileExtension(fileName).toLowerCase());
+    let cleanDirectory = directory + '/' + settings.cleanDirectory + '/';
+    let fileExtension = commonHelper.getFileExtension(fileName).toLowerCase();
+    let handler = commonHelper.geFileHandler(fileExtension);
     let delimiter = null;
 
     return fileHelper.ensureDirectoryExists(cleanDirectory)
         .then(() => handler.readFromFileAndRemoveDupes(filePath, header))
         .then((result) => {
+            result.report = result.report || {};
             if(result.delimiter) {
                 delimiter = result.delimiter;
             }
-
+            result.report.delimiter = delimiter;
             return syntaxValidation.validate(result, header);
         })
         .then((result) => {
             if(result.report) {
                 result.report.fileName = fileName;
             }
-            return handler.save(result, uniqueFilePath, header, delimiter);
+            return result;
         });
-};
-
-let getFileExtension = (fileName) => {
-    return fileName.split('.').pop();
-};
-
-let getHandler = (fileExtension) => {
-
-    var handler = null;
-
-    switch (fileExtension) {
-        case 'txt':
-        case 'csv':
-        case 'tsv':
-        case 'text':
-            handler = csvHandler;
-            break;
-        case 'xlsm':
-        case 'xlsx':
-        case 'xls':
-        case 'ods':
-        case 'xlt':
-            handler = xlxHandler;
-            break;
-    }
-    return handler;
 };
 
 module.exports = {

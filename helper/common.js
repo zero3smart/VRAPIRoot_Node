@@ -4,10 +4,13 @@
 const _ = require('lodash');
 const dbHelper = require('./database');
 const global = require('../config/global');
+const csvHandler = require('./validation/csv');
+const xlxHandler = require('./validation/xlx');
 
 let getEmailParts = (email) => {
 
-    var match = /(.*)@+([^.]*\.{1}\w+)((\.{1}\w+))*/g.exec(email);
+    //var match = /(.*)@+([^.]*\.{1}\w+)((\.{1}\w+))*/g.exec(email);
+    var match = /(.*)@+([^.]*\.{1}[^\..]*)((\.{1}[^\..]*))*/g.exec(email);
     if(_.isNil(match)) {
         console.log('problem in breaking the email into parts: ' + email);
         return {
@@ -66,9 +69,37 @@ let getEmailListFromResult = (result, headerInfo) => {
     });
 };
 
+let getFileExtension = (fileName) => {
+    return fileName.split('.').pop();
+};
+
+let geFileHandler = (fileExtension) => {
+
+    var handler = null;
+
+    switch (fileExtension) {
+        case 'txt':
+        case 'csv':
+        case 'tsv':
+        case 'text':
+            handler = csvHandler;
+            break;
+        case 'xlsm':
+        case 'xlsx':
+        case 'xls':
+        case 'ods':
+        case 'xlt':
+            handler = xlxHandler;
+            break;
+    }
+    return handler;
+};
+
 module.exports = {
     getEmailParts: getEmailParts,
     getWhiteListedDomains: getWhiteListedDomains,
     getHeaderInfo: getHeaderInfo,
-    getEmailListFromResult: getEmailListFromResult
+    getEmailListFromResult: getEmailListFromResult,
+    getFileExtension: getFileExtension,
+    geFileHandler: geFileHandler
 };

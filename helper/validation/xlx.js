@@ -64,7 +64,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
     });
 };
 
-let save = (result, filePath, header) => {
+let save = (resultData, filePath, fileName, header) => {
     return new promise(function (resolve, reject) {
         let data = [];
         let temp = [];
@@ -72,13 +72,13 @@ let save = (result, filePath, header) => {
         if (_.isObject(header) && header.header === true) {
             data = [];
 
-            for (var key in result.data[0]) {
+            for (var key in resultData[0]) {
                 temp.push(key);
             }
 
             data.push(temp);
 
-            result.data.forEach(function (d) {
+            resultData.forEach(function (d) {
                 temp = [];
                 for(var key in d) {
                     temp.push(d[key]);
@@ -87,25 +87,19 @@ let save = (result, filePath, header) => {
             });
         }
         else {
-            data = result.data;
+            data = resultData;
         }
         var wb = new Workbook();
         var ws = sheet_from_array_of_arrays(data);
         var ws_name = "Clean Sheet";
-        var fileName = filePath.split('.');
-        var extension = fileName.pop();
-
-        if (extension.toLowerCase() !== 'xlsx') {
-            filePath = filePath.replace(extension, 'xlsx');
-        }
 
         wb.SheetNames.push(ws_name);
         wb.Sheets[ws_name] = ws;
 
 
-        XLSX.writeFile(wb, filePath);
+        XLSX.writeFile(wb, (filePath + '/' + fileName + '.xlsx'));
 
-        resolve(result);
+        resolve();
     });
 };
 

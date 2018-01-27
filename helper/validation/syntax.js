@@ -104,10 +104,6 @@ let validateSyntax = (result, header, fuzzyMatch) => {
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
 
-    if(result.report) {
-        report = _.merge(report, result.report);
-    }
-
     if (containsHeader) {
         for (var key in dataCollection[0]) {
             if (_.includes(global.emailKeyNames, key.toLowerCase())) {
@@ -182,9 +178,25 @@ let validateSyntax = (result, header, fuzzyMatch) => {
 
     });
 
+    var saveReports = [];
+
+    _.forOwn(report, function (value, key) {
+        saveReports.push({
+            reportName: key,
+            data: value
+        });
+    });
+    //report.saveReports
+    result.report = result.report || {};
+    if(result.report.saveReports) {
+        result.report.saveReports = _.concat(result.report.saveReports, saveReports);
+    }
+    else {
+        result.report.saveReports = saveReports;
+    }
     return {
         data: clearedEmails,
-        report: report
+        report: result.report
     };
 };
 

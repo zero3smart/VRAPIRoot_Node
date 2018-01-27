@@ -7,6 +7,7 @@ const responseHelper = helper.response;
 const fileHelper = helper.file;
 const zipHelper = helper.zip;
 const searchHelper = helper.search;
+const reportHelper = helper.report;
 const config = require('../../config');
 const _ = require('lodash');
 const promise = require('bluebird');
@@ -80,6 +81,9 @@ module.exports = {
             .then((results) => {
                 console.log('Starting verification...');
                 return helper.verification.start(results, header);
+            })
+            .then((result) => {
+                return reportHelper.saveReports(result, directory, header)
             })
             .then((result) => {
                 var temp = {};

@@ -36,5 +36,6 @@ module.exports = {
         'msn.com',
         'aol.com',
         'verizon.net'
-    ]
+    ],
+    cleanDirectory: 'clean'
 };

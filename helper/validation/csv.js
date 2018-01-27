@@ -101,9 +101,9 @@ let onParseComplete = (results, header) => {
 };
 
 
-let save = (result, filePath, header, delimiter) => {
+let save = (data, filePath, fileName, header, delimiter) => {
     return new promise(function (resolve, reject) {
-        let writeStream = fs.createWriteStream(filePath);
+        let writeStream = fs.createWriteStream(filePath + '/' + fileName + '.csv');
         let containsHeader = false;
 
         if (_.isObject(header) && header.header === true) {
@@ -111,9 +111,9 @@ let save = (result, filePath, header, delimiter) => {
         }
         writeStream.on('error', reject);
         writeStream.on('finish', function () {
-            resolve(result);
+            resolve();
         });
-        csv.write(result.data, {
+        csv.write(data, {
             headers: containsHeader,
             delimiter: delimiter
         }).pipe(writeStream);

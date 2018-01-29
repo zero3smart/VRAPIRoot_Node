@@ -167,10 +167,10 @@ let validateSyntax = (result, header, fuzzyMatch) => {
         if(email !== fixedLatinEmail) {
             report.FixedLatinLetters.push(fixedLatinEmail);
             if(containsHeader) {
-                data[emailColumnHeader] = fixedMisSpelledEmail;
+                data[emailColumnHeader] = fixedLatinEmail;
             }
             else {
-                data[emailIndex] = fixedMisSpelledEmail;
+                data[emailIndex] = fixedLatinEmail;
             }
         }
 

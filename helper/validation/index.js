@@ -10,8 +10,10 @@ const settings = require('../../config/settings');
 
 let startValidation = (directory, files, header) => {
     return promise.map(files, function (file) {
+        console.log('readFileAndRemoveDuplicates');
         return readFileAndRemoveDuplicates(directory, file, header);
     }).then((result) => {
+        console.log('staticRemover.start');
         return staticRemover.start(result, header);
     });
 };

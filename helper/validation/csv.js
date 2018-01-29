@@ -5,11 +5,11 @@ const promise = require('bluebird');
 const fs = require('fs');
 const csv = require('fast-csv');
 const _ = require('lodash');
-const parse = require('csv-parse');
 const babyparse = require('babyparse');
-const global = require('../../config/global');
+const globalConfig = require('../../config/global');
 
 let readFromFileAndRemoveDupes = (filePath, header) => {
+    console.log('readFromFileAndRemoveDupes: CSV');
     let containsHeader = false;
 
     return new promise((resolve, reject) => {
@@ -38,13 +38,13 @@ let onParseComplete = (results, header) => {
     let containsHeader = false;
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
-    let data = results.data;
+    let email = null;
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
     }
 
-    if (data && data.length) {
+    if (results.data && results.data.length) {
 
         /*
          Detect that if the data is in form of object or in array
@@ -55,43 +55,48 @@ let onParseComplete = (results, header) => {
          if in Array then a file which doesn't have header
          */
 
-
+        console.log('MEMORY USE: ', process.memoryUsage());
         if (containsHeader) { // So there is a header
             //determine the email field name/column header for email
-            for (var key in data[0]) {
-                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+            for (var key in results.data[0]) {
+                if (_.includes(globalConfig.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
                 }
             }
-            data.forEach(function (record) {
-                if (record[emailColumnHeader] && !csvData[record[emailColumnHeader]]) {
-                    record[emailColumnHeader] = _.toLower(record[emailColumnHeader]);
-                    csvData[record[emailColumnHeader]] = record;
+            results.data.forEach(function (record) {
+                email = record[emailColumnHeader];
+
+                if (email) {
+                    record[emailColumnHeader] = email = _.toLower(email);
+                    if(!csvData[email]) {
+                        csvData[email] = true;
+                        uniqueData.push(record);
+                    }
                 }
             });
         }
         else { // No header provided
-            data.forEach(function (record) {
-                if (record.length && record[emailIndex] && !csvData[record[emailIndex]]) {
-                    record[emailIndex] = _.toLower(record[emailIndex]);
-                    csvData[record[emailIndex]] = record;
+            results.data.forEach(function (record) {
+                email = record[emailIndex];
+
+                if (record.length && email) {
+                    record[emailIndex] = email = _.toLower(email);
+                    if(!csvData[email]) {
+                        csvData[email] = true;
+                        uniqueData.push(record);
+                    }
                 }
             });
         }
 
-        for (var key in csvData) {
-            if (csvData.hasOwnProperty(key)) {
-                uniqueData.push(csvData[key]);
-            }
-        }
 
         return {
             data: uniqueData,
-            delimiter: results.meta.delimiter,
+            delimiter: results.data.delimiter,
             report: {
-                'totalRecords': data.length,
-                'duplicate': (data.length - uniqueData.length)
+                'totalRecords': results.data.length,
+                'duplicate': (results.data.length - uniqueData.length)
             }
         };
     }
@@ -138,8 +143,22 @@ let parseFiles = function ParseFiles(_input, _config)
         };
         if ((/(\.csv|\.txt|\.tsv|\.text)$/).test(_input)) {
             try {
-                var contents = fs.readFileSync(_input).toString();
-                return this.parse(contents, _config);
+                /*var contents = fs.readFileSync(_input).toString();
+                return this.parse(contents, _config);*/
+                var me = this;
+
+                fs.readFile(_input, 'UTF-8', function (err, contents) {
+                    if(err) {
+                        console.log(err);
+                        results.errors.push(err);
+                        return results;
+                    }
+                    else {
+                        console.log('file contents read completed within CSV handler');
+                        me.parse(contents, _config);
+                    }
+
+                });
             } catch (err) {
                 results.errors.push(err);
                 return results;

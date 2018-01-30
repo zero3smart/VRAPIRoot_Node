@@ -39,6 +39,7 @@ let onParseComplete = (results, header) => {
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
     let email = null;
+    let duplicateData = [];
 
     if (_.isObject(header) && header.header === true) {
         containsHeader = true;
@@ -64,6 +65,9 @@ let onParseComplete = (results, header) => {
                     break;
                 }
             }
+            results.data = _.remove(results.data, function (record) {
+                return !!record[emailColumnHeader];
+            });
             results.data.forEach(function (record) {
                 email = record[emailColumnHeader];
 
@@ -73,10 +77,16 @@ let onParseComplete = (results, header) => {
                         csvData[email] = true;
                         uniqueData.push(record);
                     }
+                    else {
+                        duplicateData.push(email);
+                    }
                 }
             });
         }
         else { // No header provided
+            results.data = _.remove(results.data, function (record) {
+                return !!record[emailIndex];
+            });
             results.data.forEach(function (record) {
                 email = record[emailIndex];
 
@@ -86,18 +96,27 @@ let onParseComplete = (results, header) => {
                         csvData[email] = true;
                         uniqueData.push(record);
                     }
+                    else {
+                        duplicateData.push(email);
+                    }
                 }
             });
         }
+
+        let report = {
+            'totalRecords': results.data.length,
+            'duplicate': (results.data.length - uniqueData.length),
+            saveReports: [{
+                reportName: 'Duplicate',
+                data: duplicateData
+            }]
+        };
 
 
         return {
             data: uniqueData,
             delimiter: results.data.delimiter,
-            report: {
-                'totalRecords': results.data.length,
-                'duplicate': (results.data.length - uniqueData.length)
-            }
+            report: report
         };
     }
     else {

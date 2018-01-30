@@ -46,13 +46,13 @@ let checkEmail = (results, header) => {
                 })
                     .then(()=> {
                         var emailsToRemoved = [];
-                        result.report['mx'] = [];
+                        result.report.saveReports = result.report.saveReports || [];
 
+                        console.log('MX failed number of domains: ', failedDomains.length);
                         if (failedDomains.length) {
                             _.remove(listOfEmails, function (email) {
                                 if (_.includes(failedDomains, email.split('@')[1])) {
                                     if (result.report) {
-                                        result.report['mx'].push(email);
                                         emailsToRemoved.push(email);
                                         return false;
                                     }
@@ -73,7 +73,15 @@ let checkEmail = (results, header) => {
                                 }
 
                             });
+
                         }
+                        console.log('Number of emails found which were in MX failed: ', emailsToRemoved.length);
+                        result.report.saveReports.push(
+                            {
+                                reportName: 'MX',
+                                data: emailsToRemoved
+                            }
+                        );
                     });
 
 

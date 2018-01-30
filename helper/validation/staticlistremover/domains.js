@@ -82,8 +82,9 @@ let remove = (results, header) => {
                     })
                         .then(function (queryResult) {
                             let matchedRecords = queryResult.matchedRecords;
+                            let saveReportsData = [];
                             emailsToRemove = [];
-                            result.report[queryResult.collection] = [];
+                            result.report.saveReports = result.report.saveReports || [];
 
                             if (!matchedRecords.length) {
                                 return;
@@ -91,10 +92,23 @@ let remove = (results, header) => {
 
                             result.data.forEach(function(email){
                                 if(_.includes(matchedRecords, email.domain)) {
-                                    result.report[queryResult.collection].push(containsHeader ? email[emailColumnHeader] : email[emailIndex]);
+                                    if(containsHeader) {
+                                        saveReportsData.push(email[emailColumnHeader]);
+                                    }
+                                    else {
+                                        saveReportsData.push(email[emailIndex]);
+                                    }
+
                                     emailsToRemove.push(email);
                                 }
                             });
+
+                            result.report.saveReports.push(
+                                {
+                                    reportName: _.capitalize((queryResult.collection.split('_')).pop()),
+                                    data: saveReportsData
+                                }
+                            );
 
                             console.log('Found ', emailsToRemove.length, ' emails to remove while matching with : ', queryResult.collection);
                             console.log('Before comparing with ', queryResult.collection, ' total records were: ', result.data.length);

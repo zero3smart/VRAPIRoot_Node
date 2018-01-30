@@ -81,8 +81,12 @@ let remove = (results, header) => {
                         });
                     }
                 });
+                result.report.saveReports = result.report.saveReports || [];
+                result.report.saveReports.push({
+                    reportName: _.capitalize((collection.split('_')).pop()),
+                    data: emailsToRemoved
+                });
 
-                result.report[collection] = emailsToRemoved;
                 return;
             })
             .then(()=> result);

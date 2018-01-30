@@ -77,7 +77,13 @@ let remove = (results, header) => {
                                 return;
                             }
                             emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
-                            result.report[collection] = queryResult.matchedRecords;
+
+                            result.report.saveReports = result.report.saveReports || [];
+                            result.report.saveReports.push({
+                                reportName: _.capitalize((collection.split('_')).pop()),
+                                data: queryResult.matchedRecords
+                            });
+
                             listOfEmails = _.difference(listOfEmails, queryResult.matchedRecords);
                             return;
                         })

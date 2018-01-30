@@ -2,18 +2,18 @@
  * Created by titu on 11/1/16.
  */
 
-const mongoose = require('mongoose');
+//const mongoose = require('mongoose');
 const dbClient = require('mongodb').MongoClient;
 const config = require('../config');
 const databaseSettings = config.databaseSettings;
 const blueBird = require('bluebird');
 //const log = require('./log');
-const log = console;
+//const log = console;
 
 let initializeDatabase = () => {
     let uriString = databaseSettings.getDatabaseUrl(databaseSettings.getDatabaseConfig());
     let connectionString = 'mongodb://' + uriString;
-    mongoose.Promise = blueBird;
+    /*mongoose.Promise = blueBird;
 
     log.info('Connecting to database on: ', connectionString);
 
@@ -36,7 +36,7 @@ let initializeDatabase = () => {
             log.warn('SIGINT: Database disconnected.');
             process.exit(0);
         });
-    });
+    });*/
 
     dbClient.connect(connectionString, {
         promiseLibrary: blueBird

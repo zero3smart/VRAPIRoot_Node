@@ -42,7 +42,12 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         var parseData = null;
 
         if(containsHeader) {
-            parseData = babyparse.unparse(XLSX.utils.sheet_to_json(workbook.Sheets["Sheet1"]));
+            var jsonData = [];
+
+            _.each(workbook.Sheets, function (value, key) {
+                jsonData = _.concat(jsonData, XLSX.utils.sheet_to_json(workbook.Sheets[key]))
+            });
+            parseData = babyparse.unparse(jsonData);
             parseData = babyparse.parse(parseData, {
                 header: containsHeader,
                 complete: (results) => {
@@ -51,13 +56,35 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
             });
         }
         else {
+            var csvData = [];
 
-            babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets["Sheet1"]), {
-                header: containsHeader,
-                complete: (results) => {
-                    parseData = csvHelper.onParseComplete(results, header);
-                }
+            _.each(workbook.Sheets, function (value, key) {
+                babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets[key]), {
+                    header: containsHeader,
+                    complete: (results) => {
+                        csvData = _.concat(csvData, csvHelper.onParseComplete(results, header));
+                    }
+                });
             });
+
+            parseData = csvData[0];
+
+            for(var i = 1; i<csvData.length; i++) {
+                if(csvData[i].data) {
+                    parseData.data = _.concat(parseData.data, csvData[i].data);
+                }
+                if(csvData[i].report) {
+                    parseData.report.duplicate += csvData[i].report.duplicate;
+                    parseData.report.totalRecords += csvData[i].report.totalRecords;
+                    parseData.report.saveReports.forEach(function(saveReport) {
+                        csvData[i].report.saveReports.forEach(function (currentSaveReport) {
+                            if(currentSaveReport.reportName === saveReport.reportName) {
+                                saveReport.data = _.concat(saveReport.data, currentSaveReport.data);
+                            }
+                        });
+                    });
+                }
+            }
 
         }
         resolve(parseData);
@@ -91,7 +118,7 @@ let save = (resultData, filePath, fileName, header) => {
         }
         var wb = new Workbook();
         var ws = sheet_from_array_of_arrays(data);
-        var ws_name = "Clean Sheet";
+        var ws_name = "CleanSheet";
 
         wb.SheetNames.push(ws_name);
         wb.Sheets[ws_name] = ws;

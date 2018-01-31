@@ -10,9 +10,10 @@ let zip = (directory, zipFileName, format, next) => {
     //7z a -ttar -so archive.tar * | 7z a -si archive.tgz
     let command = buildCommand(format, true, directory, new Date().getTime() + '.zip');
 
-    child_process.exec(command, (err) => {
+    /*child_process.exec(command, (err) => {
         nextHandler(err, next)
-    });
+    });*/
+    return child_process.execAsync(command);
 
 };
 

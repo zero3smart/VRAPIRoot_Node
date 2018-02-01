@@ -16,6 +16,7 @@
     "express": "~4.13.4",
     "fast-csv": "^2.3.0",
     "fuzzy-matching": "^0.4.3",
+    "html-pdf": "^2.1.0",
     "jade": "~1.11.0",
     "jsonfile": "^2.4.0",
     "line-by-line": "^0.1.5",

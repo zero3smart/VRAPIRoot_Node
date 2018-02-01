@@ -15,6 +15,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         let workbook = null;
         let containsHeader = false;
         try {
+            console.log('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
             workbook = XLSX.readFile(filePath, {sheetRows: 0});
         }
         catch (e) {
@@ -40,7 +41,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         });*/
 
         var parseData = null;
-
+        console.log('MEMORY USE: ', process.memoryUsage());
         if(containsHeader) {
             var jsonData = [];
 
@@ -52,6 +53,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
                 header: containsHeader,
                 complete: (results) => {
                     parseData = csvHelper.onParseComplete(results, header);
+                    resolve(parseData);
                 }
             });
         }
@@ -85,9 +87,9 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
                     });
                 }
             }
+            resolve(parseData);
 
         }
-        resolve(parseData);
     });
 };
 

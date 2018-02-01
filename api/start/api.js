@@ -83,27 +83,33 @@ module.exports = {
                 return helper.verification.start(results, header);
             })
             .then((result) => {
-                return reportHelper.saveReports(result, directory, header)
-            })
-            .then((result) => {
-                var temp = {};
-
                 report.endTime = new Date();
-                if(!_.isArray(result)) {
-                    result = [result];
-                }
+                report.totalRecordsAfterClean = 0;
+                report.totalPreCleanRecords = 0;
+                report.files = [];
+
                 result.forEach((r) => {
+                    report.totalRecordsAfterClean += r.data.length;
+                    console.log('r.report.totalRecords: ', r.report.totalRecords);
+                    report.totalPreCleanRecords += r.report.totalRecords;
+                    //report.data = _.concat(report.data, r.data);
                     if(r.report) {
-                        temp = {};
-                        r.report['totalRecordsAfterClean'] = r.data.length;
-                        temp[r.report.fileName] = r.report;
-                        report =_.merge(report, temp);
+                        report.files.push({
+                            fileName: r.report.fileName,
+                            reports: r.report.saveReports,
+                            totalRecords: r.report.totalRecords,
+                            data: r.data
+                        });
                     }
                 });
                 report.timeRequired = time.end('clean');
-                printReport({data: result.data, report: report, directory: directory});
+
+                return reportHelper.saveReports(report, directory, header);
+
+            })
+            .then(() => {
                 responseHelper.success(response, {
-                    report: report
+                    report: true
                 });
             })
             .catch((e) => {
@@ -123,23 +129,4 @@ module.exports = {
         });
 
     }
-};
-
-let printReport = (report) => {
-    /*_.each(reports, (report)=>{
-        console.log('------REPORT-----');
-        for(var key in report) {
-            console.log(key, ' : ', report[key]);
-        }
-    });*/
-    console.log('');
-    console.log('------Report-----');
-    for(var key in report) {
-        console.log(key, ' : ', report[key]);
-    }
-    var file = report.directory + '/clean/report.json';
-
-    jsonfile.writeFile(file, report, {spaces: 2}, function(err) {
-        console.error(err);
-    });
 };

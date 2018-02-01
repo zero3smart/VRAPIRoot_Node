@@ -17,7 +17,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         if (_.isObject(header) && header.header === true) {
             containsHeader = true;
         }
-
+        console.log('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
         babyparse.parseFiles(filePath, {
             header: containsHeader,
             complete: (results) => {

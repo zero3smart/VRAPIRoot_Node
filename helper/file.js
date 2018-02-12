@@ -24,14 +24,14 @@ let ensureDirectoryExists = (directory) => {
 };
 
 let prepareFiles = (directory) => {
-    let allowedZipeTypes = config.settings.allowedZipeTypes;
+    let allowedZipTypes = config.settings.allowedZipTypes;
     let allowedFileTypes = config.settings.allowedFileTypes;
-    let allowedExtensions = _.union(allowedFileTypes, allowedZipeTypes);
+    let allowedExtensions = _.union(allowedFileTypes, allowedZipTypes);
 
     return ensureDirectoryExists(directory)
         .then(() => getFiles(directory, allowedExtensions))
         .then((files) => {
-            let zippedFiles = files.filter((fileName) => _.includes(allowedZipeTypes, _.trimStart(path.extname(fileName), '.')));
+            let zippedFiles = files.filter((fileName) => _.includes(allowedZipTypes, _.trimStart(path.extname(fileName), '.')));
             if (!files.length || !zippedFiles.length) {
                 return files;
             }
@@ -64,4 +64,3 @@ module.exports = {
     ensureDirectoryExists: ensureDirectoryExists,
     prepareFiles: prepareFiles
 };
-

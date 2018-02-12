@@ -16,7 +16,7 @@ module.exports = {
         'tsv',
         'text'
     ],
-    allowedZipeTypes: [
+    allowedZipTypes: [
         'zip',
         //'rar',
         'tar',

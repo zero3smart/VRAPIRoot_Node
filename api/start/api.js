@@ -90,10 +90,8 @@ module.exports = {
 
                 result.forEach((r) => {
                     report.totalRecordsAfterClean += r.data.length;
-                    console.log('r.report.totalRecords: ', r.report.totalRecords);
                     report.totalPreCleanRecords += r.report.totalRecords;
-                    //report.data = _.concat(report.data, r.data);
-                    if(r.report) {
+                    if (r.report) {
                         report.files.push({
                             fileName: r.report.fileName,
                             reports: r.report.saveReports,
@@ -115,18 +113,5 @@ module.exports = {
             .catch((e) => {
                 console.log(e);
             });
-    },
-
-    zip: (request, response) => {
-
-        zipHelper.zip(config.global.userUploadsDir + '/1476795850851', new Date().getTime().toString() + '.zip', 'zip', function (err) {
-            if (err) {
-                responseHelper.failure(response, err);
-            }
-            else {
-                responseHelper.success(response, 'Done');
-            }
-        });
-
     }
 };

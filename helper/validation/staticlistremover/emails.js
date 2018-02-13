@@ -19,19 +19,18 @@ let remove = (results, header) => {
         containsHeader = true;
     }
 
-    if (containsHeader) {
-        for (var key in results[0].data[0]) {
-            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
-                emailColumnHeader = key;
-                break;
-            }
-        }
-    }
-
     return promise.map(results, (result) => {
         listOfEmails = [];
-
+        if (!result || !result.data.length) {
+            return;
+        }
         if (containsHeader) {
+            for (var key in result.data[0]) {
+                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                    emailColumnHeader = key;
+                    break;
+                }
+            }
             listOfEmails = _.map(result.data, emailColumnHeader);
         }
         else {
@@ -57,8 +56,8 @@ let remove = (results, header) => {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
                                         .map(function (record, i) {
-                                            if(!record.email) {
-                                                console.log('Found an email with problem at ', i, ' : ' , record);
+                                            if (!record.email) {
+                                                console.log('Found an email with problem at ', i, ' : ', record);
                                                 return null;
                                             }
                                             return record.email.toString().toLowerCase();
@@ -67,7 +66,7 @@ let remove = (results, header) => {
                                         .value();
 
                                     //TODO: nedd to do a _.difference to update the result.data
-                                    console.log('Got matchedRecords for collection in Static email comparison: ' + collection + ' : '+ matchedRecords.length);
+                                    console.log('Got matchedRecords for collection in Static email comparison: ' + collection + ' : ' + matchedRecords.length);
                                     resolve({matchedRecords: matchedRecords, collection: collection});
                                 }
                             });

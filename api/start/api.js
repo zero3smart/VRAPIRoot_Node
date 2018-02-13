@@ -5,7 +5,6 @@
 const helper = require('../../helper');
 const responseHelper = helper.response;
 const fileHelper = helper.file;
-const zipHelper = helper.zip;
 const searchHelper = helper.search;
 const reportHelper = helper.report;
 const config = require('../../config');
@@ -44,7 +43,8 @@ module.exports = {
 
         let query = request.body || {};
         let dirInfo = {
-            fileId: query.fileId,
+            fileName: query.fileName,
+            fileId: new Date().getTime(),
             userName: query.userName,
         };
         let header = query.header || {};
@@ -63,16 +63,24 @@ module.exports = {
         }
         let time = new Time();
         time.start('clean');
-        let steps = fileHelper.prepareFiles(directory)
-            .then((files) => {
-                if (_.isEmpty(files)) {
+
+        let steps = fileHelper.getFTPFiles(dirInfo)
+            .then((filesInfo) => {
+                if (filesInfo.error) {
+                    responseHelper.failure(response, {
+                        message: filesInfo.error
+                    });
+                    steps.cancel();
+                    return;
+                }
+                else if (_.isEmpty(filesInfo.files)) {
                     responseHelper.failure(response, {
                         message: config.message.files_not_found_error
                     });
                     steps.cancel();
                     return;
                 }
-                return files;
+                return filesInfo.files;
             })
             .then((files) => {
                 console.log('Starting validation...');
@@ -89,6 +97,9 @@ module.exports = {
                 report.files = [];
 
                 result.forEach((r) => {
+                    if (!r) {
+                        return;
+                    }
                     report.totalRecordsAfterClean += r.data.length;
                     report.totalPreCleanRecords += r.report.totalRecords;
                     if (r.report) {
@@ -112,6 +123,9 @@ module.exports = {
             })
             .catch((e) => {
                 console.log(e);
+                responseHelper.failure(response, {
+                    message: config.message.unknown_error
+                });
             });
     }
 };

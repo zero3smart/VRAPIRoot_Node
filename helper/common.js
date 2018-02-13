@@ -6,12 +6,13 @@ const dbHelper = require('./database');
 const global = require('../config/global');
 const csvHandler = require('./validation/csv');
 const xlxHandler = require('./validation/xlx');
+const config = require('../config');
 
 let getEmailParts = (email) => {
 
     //var match = /(.*)@+([^.]*\.{1}\w+)((\.{1}\w+))*/g.exec(email);
     var match = /(.*)@+([^.]*\.{1}[^\..]*)((\.{1}[^\..]*))*/g.exec(email);
-    if(_.isNil(match)) {
+    if (_.isNil(match)) {
         console.log('problem in breaking the email into parts: ' + email);
         return {
             user: null,
@@ -32,12 +33,20 @@ let getWhiteListedDomains = () => {
     return dbHelper.dbClient.collection('whitelisted_domains')
         .find({})
         .toArray()
-        .then( (domains) => {
+        .then((domains) => {
             return _.map(domains, 'domain');
         });
 };
 
-let getHeaderInfo = (results, header) => {
+let getUserFTPConfiguration = (userName) => {
+    return dbHelper.dbClient.collection('client_ftpmaster')
+        .findOne({UserName: userName})
+        .then((userFTPConfig) => {
+            return userFTPConfig;
+        });
+};
+
+let getHeaderInfo = (result, header) => {
     let containsHeader = false;
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
@@ -46,7 +55,7 @@ let getHeaderInfo = (results, header) => {
         containsHeader = true;
     }
     if (containsHeader) {
-        for (var key in results[0].data[0]) {
+        for (var key in result.data[0]) {
             if (_.includes(global.emailKeyNames, key.toLowerCase())) {
                 emailColumnHeader = key;
                 break;
@@ -95,11 +104,18 @@ let geFileHandler = (fileExtension) => {
     return handler;
 };
 
+let isFileCompatible = (fileName) => {
+    let allowedTypes = _.concat(config.settings.allowedFileTypes, config.settings.allowedZipTypes);
+    return _.includes(allowedTypes, getFileExtension(fileName));
+};
+
 module.exports = {
     getEmailParts: getEmailParts,
     getWhiteListedDomains: getWhiteListedDomains,
     getHeaderInfo: getHeaderInfo,
     getEmailListFromResult: getEmailListFromResult,
     getFileExtension: getFileExtension,
-    geFileHandler: geFileHandler
+    geFileHandler: geFileHandler,
+    isFileCompatible: isFileCompatible,
+    getUserFTPConfiguration: getUserFTPConfiguration
 };

@@ -21,20 +21,19 @@ let remove = (results, header) => {
         containsHeader = true;
     }
 
-    if (containsHeader) {
-        for (var key in results[0].data[0]) {
-            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
-                emailColumnHeader = key;
-                break;
-            }
-        }
-    }
-
     return promise.map(results, (result) => {
         listOfDomains = [];
-
+        if (!result || !result.data.length) {
+            return;
+        }
         if (containsHeader) {
-            listOfDomains = _.map(result.data, function(record) {
+            for (var key in result.data[0]) {
+                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                    emailColumnHeader = key;
+                    break;
+                }
+            }
+            listOfDomains = _.map(result.data, function (record) {
                 domain = commonHelper.getEmailParts(record[emailColumnHeader]).domain;
                 record.domain = domain;
                 return domain;
@@ -55,7 +54,7 @@ let remove = (results, header) => {
                 return promise.map(collections, (collection) => {
 
                     return new promise(function (resolve, reject) {
-                        dbClient.collection(collection).find({domain : { $ne: ""}}, {domain: 1, _id: 0})
+                        dbClient.collection(collection).find({domain: {$ne: ""}}, {domain: 1, _id: 0})
                             .toArray(function (err, recordsInCollection) {
                                 if (err) {
                                     reject(err);
@@ -65,8 +64,8 @@ let remove = (results, header) => {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
                                         .map(function (record, i) {
-                                            if(!record.domain) {
-                                                console.log('Found a domain with problem at ', i, ' : ' , record);
+                                            if (!record.domain) {
+                                                console.log('Found a domain with problem at ', i, ' : ', record);
                                                 return null;
                                             }
                                             return record.domain.toString().toLowerCase();
@@ -75,7 +74,7 @@ let remove = (results, header) => {
                                         .value();
 
                                     //TODO: nedd to do a _.difference to update the result.data
-                                    console.log('Got matchedRecords for collection in Static domain comparison: ' + collection + ' : '+ matchedRecords.length);
+                                    console.log('Got matchedRecords for collection in Static domain comparison: ' + collection + ' : ' + matchedRecords.length);
                                     resolve({matchedRecords: matchedRecords, collection: collection});
                                 }
                             });
@@ -90,9 +89,9 @@ let remove = (results, header) => {
                                 return;
                             }
 
-                            result.data.forEach(function(email){
-                                if(_.includes(matchedRecords, email.domain)) {
-                                    if(containsHeader) {
+                            result.data.forEach(function (email) {
+                                if (_.includes(matchedRecords, email.domain)) {
+                                    if (containsHeader) {
                                         saveReportsData.push(email[emailColumnHeader]);
                                     }
                                     else {

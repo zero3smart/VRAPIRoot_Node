@@ -24,19 +24,18 @@ let remove = (results, header) => {
         containsHeader = true;
     }
 
-    if (containsHeader) {
-        for (var key in results[0].data[0]) {
-            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
-                emailColumnHeader = key;
-                break;
-            }
-        }
-    }
-
     return promise.map(results, (result) => {
         listOfEmails = [];
-
+        if (!result || !result.data.length) {
+            return;
+        }
         if (containsHeader) {
+            for (var key in result.data[0]) {
+                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                    emailColumnHeader = key;
+                    break;
+                }
+            }
             listOfEmails = _.map(result.data, emailColumnHeader);
         }
         else {

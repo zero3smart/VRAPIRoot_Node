@@ -8,7 +8,7 @@ const dns = promise.promisifyAll(require("dns"));
 
 let checkEmail = (results, header) => {
 
-    let headerInfo = commonHelper.getHeaderInfo(results, header);
+    let headerInfo = null;
     let listOfEmails = [];
     let domainsList = [];
     let failedDomains = [];
@@ -17,6 +17,10 @@ let checkEmail = (results, header) => {
         .then((whiteListedDomains) => {
 
             return promise.map(results, (result) => {
+                if (!result || !result.data.length) {
+                    return;
+                }
+                headerInfo = commonHelper.getHeaderInfo(result, header);
                 failedDomains = [];
                 listOfEmails = commonHelper.getEmailListFromResult(result, headerInfo);
 

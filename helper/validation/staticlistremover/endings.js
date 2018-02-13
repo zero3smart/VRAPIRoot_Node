@@ -21,20 +21,19 @@ let remove = (results, header) => {
         containsHeader = true;
     }
 
-    if (containsHeader) {
-        for (var key in results[0].data[0]) {
-            if (_.includes(global.emailKeyNames, key.toLowerCase())) {
-                emailColumnHeader = key;
-                break;
-            }
-        }
-    }
-
     return promise.map(results, (result) => {
         listOfEndings = [];
-
+        if (!result || !result.data.length) {
+            return;
+        }
         if (containsHeader) {
-            listOfEndings = _.map(result.data, function(record) {
+            for (var key in result.data[0]) {
+                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                    emailColumnHeader = key;
+                    break;
+                }
+            }
+            listOfEndings = _.map(result.data, function (record) {
                 ending = commonHelper.getEmailParts(record[emailColumnHeader]).endings;
                 record.ending = ending;
                 return ending;
@@ -71,8 +70,8 @@ let remove = (results, header) => {
                                     var matchedRecords = _.chain(recordsInCollection)
                                         .compact()
                                         .map(function (record, i) {
-                                            if(!record.ending) {
-                                                console.log('Found a ending with problem at ', i, ' : ' , record);
+                                            if (!record.ending) {
+                                                console.log('Found a ending with problem at ', i, ' : ', record);
                                                 return null;
                                             }
                                             return record.ending.toString().toLowerCase();
@@ -81,7 +80,7 @@ let remove = (results, header) => {
                                         .value();
 
                                     //TODO: nedd to do a _.difference to update the result.data
-                                    console.log('Got matchedRecords for collection in Static endings comparison: ' + collection + ' : '+ matchedRecords.length);
+                                    console.log('Got matchedRecords for collection in Static endings comparison: ' + collection + ' : ' + matchedRecords.length);
                                     resolve({matchedRecords: matchedRecords, collection: collection});
                                 }
                             });
@@ -96,9 +95,9 @@ let remove = (results, header) => {
                                 return;
                             }
 
-                            result.data.forEach(function(email){
-                                if(_.includes(matchedRecords, email.ending)) {
-                                    if(containsHeader) {
+                            result.data.forEach(function (email) {
+                                if (_.includes(matchedRecords, email.ending)) {
+                                    if (containsHeader) {
                                         saveReportsData.push(email[emailColumnHeader]);
                                     }
                                     else {

@@ -9,6 +9,10 @@ const promise = require('bluebird');
 const fs = promise.promisifyAll(require('fs'));
 const _ = require('lodash');
 const zipHelper = promise.promisifyAll(require('./zip'));
+const JSFtp = require("jsftp");
+const commonHelper = require('./common');
+//const JSFtp = promise.promisifyAll(require('jsftp'));
+const babyparse = require('babyparse');
 
 let ensureDirectoryExists = (directory) => {
     return new promise(function (resolve, reject) {
@@ -42,8 +46,7 @@ let prepareFiles = (directory) => {
             else {
                 return files;
             }
-        })
-        .catch((e) => console.log(e));
+        });
 };
 
 let extractZippedFiles = (directory, zippedFiles) => {
@@ -60,7 +63,42 @@ let getFiles = (directory, filterType) => {
         })
 };
 
+let getFTPFiles = (dirInfo) => {
+
+    let ftp = null;
+
+    return commonHelper.getUserFTPConfiguration(dirInfo.userName)
+        .then((ftpConfig) => {
+            ftp = new JSFtp({
+                host: ftpConfig.HostName,
+                port: ftpConfig.port || 21,
+                user: ftpConfig.UserName, // defaults to "anonymous"
+                pass: ftpConfig.Password // defaults to "@anonymous"
+            });
+
+            let remoteFile = ftpConfig.RootFolder + '/' + dirInfo.fileName;
+            let localDirectory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId + '/';
+            let localFile = localDirectory + dirInfo.fileName;
+            ftp = promise.promisifyAll(ftp);
+
+            if (!commonHelper.isFileCompatible(dirInfo.fileName)) {
+                return {
+                    error: 'File is not compatible for processing!'
+                };
+            }
+            return ensureDirectoryExists(localDirectory)
+                .then(() => {
+                    return ftp.getAsync(remoteFile, localFile)
+                        .then( () => {
+                            return prepareFiles(localDirectory);
+                        })
+                });
+
+        });
+};
+
 module.exports = {
     ensureDirectoryExists: ensureDirectoryExists,
-    prepareFiles: prepareFiles
+    prepareFiles: prepareFiles,
+    getFTPFiles: getFTPFiles
 };

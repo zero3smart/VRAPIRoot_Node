@@ -50,8 +50,8 @@ module.exports = {
         let header = query.header || {};
         let report = {
             startTime: new Date(),
-            userName: query.userName,
-            fileId: query.fileId
+            userName: dirInfo.userName,
+            fileId: dirInfo.fileId
         };
         let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId;
 

@@ -8,7 +8,7 @@ const child_process = promise.promisifyAll(require('child_process'));
 
 let zip = (directory, zipFileName, format, next) => {
     //7z a -ttar -so archive.tar * | 7z a -si archive.tgz
-    let command = buildCommand(format, true, directory, new Date().getTime() + '.zip');
+    let command = buildCommand(format, true, directory, zipFileName + '.zip');
 
     /*child_process.exec(command, (err) => {
         nextHandler(err, next)

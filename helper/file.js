@@ -11,7 +11,6 @@ const _ = require('lodash');
 const zipHelper = promise.promisifyAll(require('./zip'));
 const JSFtp = require("jsftp");
 const commonHelper = require('./common');
-//const JSFtp = promise.promisifyAll(require('jsftp'));
 const babyparse = require('babyparse');
 
 let ensureDirectoryExists = (directory) => {
@@ -97,8 +96,34 @@ let getFTPFiles = (dirInfo) => {
         });
 };
 
+let saveZipToFTP = (report) => {
+    console.log('writing the zip to ftp 0');
+    let ftp = null;
+
+    return commonHelper.getUserFTPConfiguration(report.userName)
+        .then((ftpConfig) => {
+            console.log('writing the zip to ftp')
+            ftp = new JSFtp({
+                host: ftpConfig.HostName,
+                port: ftpConfig.port || 21,
+                user: ftpConfig.UserName, // defaults to "anonymous"
+                pass: ftpConfig.Password // defaults to "@anonymous"
+            });
+            let remoteFile = 'clean/' + report.fileId + '.zip';
+            let localDirectory = config.global.userUploadsDir + '/' + report.userName + '/' + report.fileId + '/';
+            let localFile = localDirectory + 'clean/' + report.fileId + '.zip';
+
+            ftp = promise.promisifyAll(ftp);
+
+            return ftp.putAsync(localFile, remoteFile);
+
+        });
+
+};
+
 module.exports = {
     ensureDirectoryExists: ensureDirectoryExists,
     prepareFiles: prepareFiles,
-    getFTPFiles: getFTPFiles
+    getFTPFiles: getFTPFiles,
+    saveZipToFTP: saveZipToFTP
 };

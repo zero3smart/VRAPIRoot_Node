@@ -65,22 +65,22 @@ module.exports = {
         time.start('clean');
 
         let steps = fileHelper.getFTPFiles(dirInfo)
-            .then((filesInfo) => {
-                if (filesInfo.error) {
+            .then((files) => {
+                if (files.error) {
                     responseHelper.failure(response, {
-                        message: filesInfo.error
+                        message: files.error
                     });
                     steps.cancel();
                     return;
                 }
-                else if (_.isEmpty(filesInfo.files)) {
+                else if (_.isEmpty(files)) {
                     responseHelper.failure(response, {
                         message: config.message.files_not_found_error
                     });
                     steps.cancel();
                     return;
                 }
-                return filesInfo.files;
+                return files;
             })
             .then((files) => {
                 console.log('Starting validation...');

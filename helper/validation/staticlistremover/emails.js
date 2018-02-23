@@ -72,10 +72,10 @@ let remove = (results, header) => {
                             });
                     })
                         .then(function (queryResult) {
-                            if (!queryResult.matchedRecords.length) {
-                                return;
+
+                            if (queryResult.matchedRecords.length) {
+                                emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
                             }
-                            emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
 
                             result.report.saveReports = result.report.saveReports || [];
                             result.report.saveReports.push({

@@ -85,22 +85,20 @@ let remove = (results, header) => {
                             emailsToRemove = [];
                             result.report.saveReports = result.report.saveReports || [];
 
-                            if (!matchedRecords.length) {
-                                return;
+                            if (matchedRecords.length) {
+                                result.data.forEach(function (email) {
+                                    if (_.includes(matchedRecords, email.domain)) {
+                                        if (containsHeader) {
+                                            saveReportsData.push(email[emailColumnHeader]);
+                                        }
+                                        else {
+                                            saveReportsData.push(email[emailIndex]);
+                                        }
+
+                                        emailsToRemove.push(email);
+                                    }
+                                });
                             }
-
-                            result.data.forEach(function (email) {
-                                if (_.includes(matchedRecords, email.domain)) {
-                                    if (containsHeader) {
-                                        saveReportsData.push(email[emailColumnHeader]);
-                                    }
-                                    else {
-                                        saveReportsData.push(email[emailIndex]);
-                                    }
-
-                                    emailsToRemove.push(email);
-                                }
-                            });
 
                             result.report.saveReports.push(
                                 {

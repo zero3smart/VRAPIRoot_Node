@@ -54,10 +54,6 @@ let remove = (results, header) => {
         })
             .then(function (roles) {
                 emailsToRemoved = [];
-
-                if (!roles.length) {
-                    return;
-                }
                 roles = _.map(roles, 'role');
 
                 roles.forEach(function (role) {
@@ -88,8 +84,8 @@ let remove = (results, header) => {
 
                 return;
             })
-            .then(()=> result);
-    });
+    })
+        .then(()=> results);
 
 };
 

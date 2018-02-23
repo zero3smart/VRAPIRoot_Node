@@ -13,7 +13,6 @@ let remove = (results, header) => {
     let containsHeader = false;
     let emailIndex = header.emailIndex || 0;
     let emailColumnHeader = null;
-    let listOfEmails = [];
     let emailsToRemoved = [];
 
     if (_.isObject(header) && header.header === true) {
@@ -21,7 +20,6 @@ let remove = (results, header) => {
     }
 
     return promise.map(results, (result) => {
-        listOfEmails = [];
 
         if (!result || !result.data.length) {
             return;
@@ -34,60 +32,63 @@ let remove = (results, header) => {
                     break;
                 }
             }
-            listOfEmails = _.map(result.data, emailColumnHeader);
         }
-        else {
-            listOfEmails = _.map(result.data, function (record) {
-                return record[emailIndex];
-            });
-        }
-        return new promise(function (resolve, reject) {
-            dbClient.collection(collection).find({}, {word: 1, _id: 0})
-                .toArray(function (err, badWords) {
-                    if (err) {
-                        reject(err)
-                    }
-                    resolve(badWords);
+
+        return dbClient.listCollections({name: /static_list_words/})
+            .toArray()
+            .then((collections) => {
+                collections = _.map(collections, 'name');
+
+                return promise.map(collections, (collection) => {
+
+                    return new promise(function (resolve, reject) {
+                        dbClient.collection(collection).find({}, {word: 1, _id: 0})
+                            .toArray(function (err, words) {
+                                if (err) {
+                                    reject(err);
+                                }
+                                else {
+                                    emailsToRemoved = [];
+                                    console.log('WORD: Retreived ', words.length, ' records from ', collection);
+                                    if (words.length) {
+                                        words = _.map(words, 'word');
+                                        words.forEach(function (word) {
+                                            if (containsHeader) {
+                                                _.remove(result.data, function (d) {
+                                                    if (d[emailColumnHeader].indexOf(word) !== -1) {
+                                                        emailsToRemoved.push(d[emailColumnHeader]);
+                                                        return true;
+                                                    }
+                                                    return false;
+                                                });
+                                            }
+                                            else {
+                                                _.remove(result.data, function (d) {
+                                                    if (d[emailIndex].indexOf(word) !== -1) {
+                                                        emailsToRemoved.push(d[emailIndex]);
+                                                        return true;
+                                                    }
+                                                    return false;
+                                                });
+                                            }
+                                        });
+                                    }
+                                    result.data = _.difference(result.data, emailsToRemoved);
+                                    result.report.saveReports = result.report.saveReports || [];
+                                    result.report.saveReports.push({
+                                        reportName: _.capitalize((collection.split('_')).pop()),
+                                        data: emailsToRemoved
+                                    });
+                                    resolve();
+                                }
+                            });
+                    })
                 })
-        })
-            .then(function (badWords) {
-                emailsToRemoved = [];
 
-                if (!badWords.length) {
-                    return;
-                }
-                badWords = _.map(badWords, 'word');
-
-                badWords.forEach(function (badWord) {
-                    if (containsHeader) {
-                        _.remove(result.data, function (d) {
-                            if (d[emailColumnHeader].indexOf(badWord) !== -1) {
-                                emailsToRemoved.push(d[emailColumnHeader]);
-                                return true;
-                            }
-                            return false;
-                        });
-                    }
-                    else {
-                        _.remove(result.data, function (d) {
-                            if (d[emailIndex].indexOf(badWord) !== -1) {
-                                emailsToRemoved.push(d[emailIndex]);
-                                return true;
-                            }
-                            return false;
-                        });
-                    }
-                });
-                result.report.saveReports = result.report.saveReports || [];
-                result.report.saveReports.push({
-                    reportName: _.capitalize((collection.split('_')).pop()),
-                    data: emailsToRemoved
-                });
-
-                return;
             })
-            .then(()=> result);
-    });
+
+
+    }).then(() => results);
 
 };
 

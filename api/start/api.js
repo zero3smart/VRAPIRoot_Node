@@ -47,7 +47,10 @@ module.exports = {
             fileId: new Date().getTime(),
             userName: query.userName,
         };
-        let header = query.header || {};
+        let header = query.header || {
+                header: false,
+                emailIndex: 0
+            };
         let report = {
             startTime: new Date(),
             userName: dirInfo.userName,
@@ -55,7 +58,7 @@ module.exports = {
         };
         let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId;
 
-        if (_.isEmpty(_.omitBy(dirInfo, _.isUndefined))) {
+        if (!_.isEmpty(_.pickBy(dirInfo, _.isNil))) {
             responseHelper.failure(response, {
                 message: config.message.missing_parameters_service_erorr
             });

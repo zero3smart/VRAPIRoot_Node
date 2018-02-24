@@ -28,7 +28,6 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
             },
         });
 
-        //readStream.pipe(parser);
     });
 };
 
@@ -73,7 +72,7 @@ let onParseComplete = (results, header) => {
 
                 if (email) {
                     record[emailColumnHeader] = email = _.toLower(email);
-                    if(!csvData[email]) {
+                    if (!csvData[email]) {
                         csvData[email] = true;
                         uniqueData.push(record);
                     }
@@ -92,7 +91,7 @@ let onParseComplete = (results, header) => {
 
                 if (record.length && email) {
                     record[emailIndex] = email = _.toLower(email);
-                    if(!csvData[email]) {
+                    if (!csvData[email]) {
                         csvData[email] = true;
                         uniqueData.push(record);
                     }
@@ -107,7 +106,7 @@ let onParseComplete = (results, header) => {
             'totalRecords': results.data.length,
             'duplicate': (results.data.length - uniqueData.length),
             saveReports: [{
-                reportName: 'Duplicate',
+                reportName: require('../common').getReportName('duplicates'),
                 data: duplicateData
             }]
         };
@@ -144,12 +143,11 @@ let save = (data, filePath, fileName, header, delimiter) => {
     });
 };
 
-let parseFiles = function ParseFiles(_input, _config)
-{
+let parseFiles = function ParseFiles(_input, _config) {
     if (Array.isArray(_input)) {
         var results = [];
-        _input.forEach(function(input) {
-            if(typeof input === 'object')
+        _input.forEach(function (input) {
+            if (typeof input === 'object')
                 results.push(ParseFiles(input.file, input.config));
             else
                 results.push(ParseFiles(input, _config));
@@ -163,11 +161,11 @@ let parseFiles = function ParseFiles(_input, _config)
         if ((/(\.csv|\.txt|\.tsv|\.text)$/).test(_input)) {
             try {
                 /*var contents = fs.readFileSync(_input).toString();
-                return this.parse(contents, _config);*/
+                 return this.parse(contents, _config);*/
                 var me = this;
 
                 fs.readFile(_input, 'UTF-8', function (err, contents) {
-                    if(err) {
+                    if (err) {
                         console.log(err);
                         results.errors.push(err);
                         return results;

@@ -89,11 +89,11 @@ let validateSyntax = (result, header, fuzzyMatch) => {
     var clearedEmails = [];
     var email = null;
     var report = {
-        "LongEmails": [],
-        "SyntaxErrors": [],
-        "Seeds": [],
-        "FixedMisSpelledDomains": [],
-        "FixedLatinLetters": []
+        "longEmails": [],
+        "syntaxErrors": [],
+        "seeds": [],
+        "fixedMisSpelledDomains": [],
+        "fixedLatinLetters": []
     };
     var fixedMisSpelledEmail = null;
     var fixedLatinEmail = null;
@@ -121,37 +121,37 @@ let validateSyntax = (result, header, fuzzyMatch) => {
         }
 
         if (!lengthCheck(email)) {
-            report.LongEmails.push(email);
+            report.longEmails.push(email);
             return;
         }
         else if (!spaceCharacterCheck(email)) {
-            report.SyntaxErrors.push(email);
+            report.syntaxErrors.push(email);
             return;
         }
         else if (!numOfDotOccurencesCheck(email)) {
-            report.SyntaxErrors.push(email);
+            report.syntaxErrors.push(email);
             return;
         }
         else if (!numOfAtTheRateOfOccurencesCheck(email)) {
-            report.SyntaxErrors.push(email);
+            report.syntaxErrors.push(email);
             return;
         }
         else if (!specialCharacterCheck(email)) {
-            report.SyntaxErrors.push(email);
+            report.syntaxErrors.push(email);
             return;
         }
         else if (!asciiCharacterCheck(email)) {
-            report.SyntaxErrors.push(email);
+            report.syntaxErrors.push(email);
             return;
         }
         else if (!botAddressCheck(email)) {
-            report.Seeds.push(email);
+            report.seeds.push(email);
             return;
         }
 
         fixedMisSpelledEmail = fixMisSpelled(email, fuzzyMatch);
         if(email !== fixedMisSpelledEmail) {
-            report.FixedMisSpelledDomains.push(fixedMisSpelledEmail);
+            report.fixedMisSpelledDomains.push(fixedMisSpelledEmail);
             if(containsHeader) {
                 data[emailColumnHeader] = fixedMisSpelledEmail;
             }
@@ -165,7 +165,7 @@ let validateSyntax = (result, header, fuzzyMatch) => {
         fixedLatinEmail = fixLatinCharacters(email);
 
         if(email !== fixedLatinEmail) {
-            report.FixedLatinLetters.push(fixedLatinEmail);
+            report.fixedLatinLetters.push(fixedLatinEmail);
             if(containsHeader) {
                 data[emailColumnHeader] = fixedLatinEmail;
             }
@@ -182,7 +182,7 @@ let validateSyntax = (result, header, fuzzyMatch) => {
 
     _.forOwn(report, function (value, key) {
         saveReports.push({
-            reportName: key,
+            reportName: commonHelper.getReportName(key),
             data: value
         });
     });

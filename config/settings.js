@@ -37,5 +37,6 @@ module.exports = {
         'aol.com',
         'verizon.net'
     ],
-    cleanDirectory: 'clean'
+    cleanDirectory: 'clean',
+    reportMapper: null
 };

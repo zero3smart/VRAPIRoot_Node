@@ -107,7 +107,7 @@ let remove = (results, header) => {
                             }
                             result.report.saveReports.push(
                                 {
-                                    reportName: _.capitalize((queryResult.collection.split('_')).pop()),
+                                    reportName: commonHelper.getReportName(collection),
                                     data: saveReportsData
                                 }
                             );

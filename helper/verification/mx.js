@@ -82,7 +82,7 @@ let checkEmail = (results, header) => {
                         console.log('Number of emails found which were in MX failed: ', emailsToRemoved.length);
                         result.report.saveReports.push(
                             {
-                                reportName: 'MX',
+                                reportName: commonHelper.getReportName('mxOnly'),
                                 data: emailsToRemoved
                             }
                         );

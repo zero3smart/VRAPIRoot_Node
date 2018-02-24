@@ -8,6 +8,7 @@ const fileHelper = helper.file;
 const searchHelper = helper.search;
 const reportHelper = helper.report;
 const config = require('../../config');
+const commonHelper = require('../../helper/common');
 const _ = require('lodash');
 const promise = require('bluebird');
 const jsonfile = require('jsonfile');
@@ -84,6 +85,13 @@ module.exports = {
                     return;
                 }
                 return files;
+            })
+            .then((files)=> {
+                return commonHelper.getReportMapper()
+                    .then( (reportMapper) => {
+                        config.settings.reportMapper = reportMapper;
+                        return files;
+                    });
             })
             .then((files) => {
                 console.log('Starting validation...');

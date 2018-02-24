@@ -10,6 +10,7 @@ const verificationHelper = require('./verification/index');
 const database = require('./database');
 const searchHelper = require('./search');
 const reportHelper = require('./report');
+const commonHelper = require('./common');
 
 module.exports = {
     response: responseHelper,
@@ -20,5 +21,6 @@ module.exports = {
     verification: verificationHelper,
     database: database,
     search: searchHelper,
-    report: reportHelper
+    report: reportHelper,
+    common: commonHelper
 };

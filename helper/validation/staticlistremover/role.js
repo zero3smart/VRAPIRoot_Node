@@ -78,7 +78,7 @@ let remove = (results, header) => {
                 });
                 result.report.saveReports = result.report.saveReports || [];
                 result.report.saveReports.push({
-                    reportName: _.capitalize((collection.split('_')).pop()),
+                    reportName: commonHelper.getReportName(collection),
                     data: emailsToRemoved
                 });
 

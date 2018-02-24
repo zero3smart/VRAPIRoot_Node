@@ -5,6 +5,7 @@ const dbHelper = require('../../database');
 const _ = require('lodash');
 const promise = require('bluebird');
 const global = require('../../../config/global');
+const commonHelper = require('../../common');
 
 let remove = (results, header) => {
 
@@ -79,7 +80,7 @@ let remove = (results, header) => {
 
                             result.report.saveReports = result.report.saveReports || [];
                             result.report.saveReports.push({
-                                reportName: _.capitalize((collection.split('_')).pop()),
+                                reportName: commonHelper.getReportName(collection),
                                 data: queryResult.matchedRecords
                             });
 

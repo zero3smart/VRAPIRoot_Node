@@ -46,6 +46,28 @@ let getUserFTPConfiguration = (userName) => {
         });
 };
 
+let getReportMapper = () => {
+    return dbHelper.dbClient.collection('report_mapper')
+        .find({})
+        .toArray()
+        .then((reportNames) => {
+            return reportNames;
+        });
+};
+
+let getReportName = (keyName) => {
+    let reportName = '';
+
+    let reportOb =  _.find(config.settings.reportMapper, {keyName: keyName});
+    if(!reportOb || !reportOb.reportName) {
+        reportName = keyName;
+    }
+    else {
+        reportName = reportOb.reportName;
+    }
+    return reportName;
+};
+
 let getHeaderInfo = (result, header) => {
     let containsHeader = false;
     let emailIndex = header.emailIndex || 0;
@@ -117,5 +139,7 @@ module.exports = {
     getFileExtension: getFileExtension,
     geFileHandler: geFileHandler,
     isFileCompatible: isFileCompatible,
-    getUserFTPConfiguration: getUserFTPConfiguration
+    getUserFTPConfiguration: getUserFTPConfiguration,
+    getReportMapper: getReportMapper,
+    getReportName: getReportName
 };

@@ -52,11 +52,25 @@ module.exports = {
                 header: false,
                 emailIndex: 0
             };
+            let scrubParams = query.options || {};
         let report = {
             startTime: new Date(),
             userName: dirInfo.userName,
             fileId: dirInfo.fileId
         };
+
+        let unKnownScrubParams = _.omitBy(scrubParams, function(value, key){return config.global.scrubOption.hasOwnProperty(key);});
+        if(!_.isEmpty(unKnownScrubParams)){
+            responseHelper.failure(response, {
+                message: [
+                    config.message.scrub_parmeter_not_supported,
+                    JSON.stringify(unKnownScrubParams)
+                ].join(': ')
+            });
+            return;
+        }
+        let scrubOptions = _.extend({}, config.global.scrubOption, scrubParams);
+
         let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId;
 
         if (!_.isEmpty(_.pickBy(dirInfo, _.isNil))) {
@@ -95,7 +109,7 @@ module.exports = {
             })
             .then((files) => {
                 console.log('Starting validation...');
-                return helper.validation.start(directory, files, header);
+                return helper.validation.start(directory, files, header, scrubOptions);
             })
             .then((results) => {
                 console.log('Starting verification...');

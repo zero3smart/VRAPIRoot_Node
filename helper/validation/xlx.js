@@ -9,11 +9,12 @@ const parse = require('csv-parse');
 const babyparse = require('babyparse');
 const XLSX = promise.promisifyAll(require('xlsx'));
 
-let readFromFileAndRemoveDupes = (filePath, header) => {
-
+let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
     return new promise((resolve, reject) => {
         let workbook = null;
         let containsHeader = false;
+        let parseData = null;
+
         try {
             console.log('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
             workbook = XLSX.readFile(filePath, {sheetRows: 0});
@@ -24,25 +25,10 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         if (_.isObject(header) && header.header === true) {
             containsHeader = true;
         }
-        /*sheetNames.forEach(function (sheetName) { /!* iterate through sheets *!/
-            var worksheet = workbook.Sheets[sheetName];
-            for (var cell in worksheet) {
-                /!* all keys that do not begin with "!" correspond to cell addresses *!/
-                if (cell[0] !== '!') {
-                    value = worksheet[cell].v;
-                    adr = (value && _.isString(value)) ? value.toLowerCase() : value;
-                    if (!uniqueOb[adr] && !_.isNil(adr)) {
-                        uniqueOb[adr] = true;
-                        data.push([adr]);
-                    }
-                    ++totalRecords;
-                }
-            }
-        });*/
 
-        var parseData = null;
         console.log('MEMORY USE: ', process.memoryUsage());
-        if(containsHeader) {
+
+        if (containsHeader) {
             var jsonData = [];
 
             _.each(workbook.Sheets, function (value, key) {
@@ -52,7 +38,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
             parseData = babyparse.parse(parseData, {
                 header: containsHeader,
                 complete: (results) => {
-                    parseData = csvHelper.onParseComplete(results, header);
+                    parseData = csvHelper.onParseComplete(results, header, scrubOptions.duplicates);
                     resolve(parseData);
                 }
             });
@@ -64,23 +50,23 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
                 babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets[key]), {
                     header: containsHeader,
                     complete: (results) => {
-                        csvData = _.concat(csvData, csvHelper.onParseComplete(results, header));
+                        csvData = _.concat(csvData, csvHelper.onParseComplete(results, header, scrubOptions.duplicates));
                     }
                 });
             });
 
             parseData = csvData[0];
 
-            for(var i = 1; i<csvData.length; i++) {
-                if(csvData[i].data) {
+            for (var i = 1; i < csvData.length; i++) {
+                if (csvData[i].data) {
                     parseData.data = _.concat(parseData.data, csvData[i].data);
                 }
-                if(csvData[i].report) {
+                if (csvData[i].report) {
                     parseData.report.duplicate += csvData[i].report.duplicate;
                     parseData.report.totalRecords += csvData[i].report.totalRecords;
-                    parseData.report.saveReports.forEach(function(saveReport) {
+                    parseData.report.saveReports.forEach(function (saveReport) {
                         csvData[i].report.saveReports.forEach(function (currentSaveReport) {
-                            if(currentSaveReport.reportName === saveReport.reportName) {
+                            if (currentSaveReport.reportName === saveReport.reportName) {
                                 saveReport.data = _.concat(saveReport.data, currentSaveReport.data);
                             }
                         });
@@ -109,7 +95,7 @@ let save = (resultData, filePath, fileName, header) => {
 
             resultData.forEach(function (d) {
                 temp = [];
-                for(var key in d) {
+                for (var key in d) {
                     temp.push(d[key]);
                 }
                 data.push(temp);

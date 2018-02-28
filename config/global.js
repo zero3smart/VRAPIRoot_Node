@@ -6,6 +6,30 @@ const path = require('path');
 
 module.exports = {
     userUploadsDir: path.resolve(__dirname, '../useruploads'),
+    scrubOption: {
+        mxOnly: false,
+        mxStandard: false,
+        botClickers: false,
+        blackListed: false,
+        spamTraps: false,
+        hardBounces: false,
+        litigators: false,
+        complainers: false,
+        unSubscribers: false,
+        badWords: false,
+        longEmails: false,
+        syntaxErrors: false,
+        seeds: false,
+        fixedMisSpelledDomains: false,
+        fixedLatinLetters: false,
+        roles: false,
+        duplicates: false,
+        disposables: false,
+        departmentals: false,
+        foreignDomains: false,
+        threatStrings: false,
+        threatEndings: false
+    },
     emailKeyNames: [
         'email',
         'emailaddress',

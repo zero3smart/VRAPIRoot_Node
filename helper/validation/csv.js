@@ -8,7 +8,7 @@ const _ = require('lodash');
 const babyparse = require('babyparse');
 const globalConfig = require('../../config/global');
 
-let readFromFileAndRemoveDupes = (filePath, header) => {
+let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
     console.log('readFromFileAndRemoveDupes: CSV');
     let containsHeader = false;
 
@@ -21,7 +21,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
         babyparse.parseFiles(filePath, {
             header: containsHeader,
             complete: (results) => {
-                resolve(onParseComplete(results, header));
+                resolve(onParseComplete(results, header, scrubOptions.duplicates));
             },
             error: (err, file, inputElem, reason) => {
                 reject(err);
@@ -31,7 +31,7 @@ let readFromFileAndRemoveDupes = (filePath, header) => {
     });
 };
 
-let onParseComplete = (results, header) => {
+let onParseComplete = (results, header, scrubDuplicate) => {
     let csvData = {};
     let uniqueData = [];
     let containsHeader = false;
@@ -72,12 +72,14 @@ let onParseComplete = (results, header) => {
 
                 if (email) {
                     record[emailColumnHeader] = email = _.toLower(email);
-                    if (!csvData[email]) {
-                        csvData[email] = true;
-                        uniqueData.push(record);
-                    }
-                    else {
-                        duplicateData.push(email);
+                    if(scrubDuplicate) {
+                        if (!csvData[email]) {
+                            csvData[email] = true;
+                            uniqueData.push(record);
+                        }
+                        else {
+                            duplicateData.push(email);
+                        }
                     }
                 }
             });
@@ -91,12 +93,14 @@ let onParseComplete = (results, header) => {
 
                 if (record.length && email) {
                     record[emailIndex] = email = _.toLower(email);
-                    if (!csvData[email]) {
-                        csvData[email] = true;
-                        uniqueData.push(record);
-                    }
-                    else {
-                        duplicateData.push(email);
+                    if(scrubDuplicate) {
+                        if (!csvData[email]) {
+                            csvData[email] = true;
+                            uniqueData.push(record);
+                        }
+                        else {
+                            duplicateData.push(email);
+                        }
                     }
                 }
             });
@@ -105,15 +109,18 @@ let onParseComplete = (results, header) => {
         let report = {
             'totalRecords': results.data.length,
             'duplicate': (results.data.length - uniqueData.length),
-            saveReports: [{
-                reportName: require('../common').getReportName('duplicates'),
-                data: duplicateData
-            }]
+            saveReports: []
         };
 
+        if(scrubDuplicate) {
+            report.saveReports.push({
+                reportName: require('../common').getReportName('duplicates'),
+                data: duplicateData
+            })
+        }
 
         return {
-            data: uniqueData,
+            data: scrubDuplicate ? uniqueData : results.data,
             delimiter: results.data.delimiter,
             report: report
         };

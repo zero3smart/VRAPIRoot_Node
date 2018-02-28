@@ -8,17 +8,17 @@ const staticRemover = require('./staticlistremover/index');
 const commonHelper = require('../common');
 const settings = require('../../config/settings');
 
-let startValidation = (directory, files, header) => {
+let startValidation = (directory, files, header, scrubOptions) => {
     return promise.map(files, function (file) {
         console.log('readFileAndRemoveDuplicates');
-        return readFileAndRemoveDuplicates(directory, file, header);
+        return readFileAndRemoveDuplicates(directory, file, header, scrubOptions);
     }).then((result) => {
         console.log('staticRemover.start');
         return staticRemover.start(result, header);
     });
 };
 
-let readFileAndRemoveDuplicates = (directory, fileName, header) => {
+let readFileAndRemoveDuplicates = (directory, fileName, header, scrubOptions) => {
 
     let filePath = directory + '/' + fileName;
     let cleanDirectory = directory + '/' + settings.cleanDirectory + '/';
@@ -27,14 +27,14 @@ let readFileAndRemoveDuplicates = (directory, fileName, header) => {
     let delimiter = null;
 
     return fileHelper.ensureDirectoryExists(cleanDirectory)
-        .then(() => handler.readFromFileAndRemoveDupes(filePath, header))
+        .then(() => handler.readFromFileAndRemoveDupes(filePath, header, scrubOptions))
         .then((result) => {
             result.report = result.report || {};
             if(result.delimiter) {
                 delimiter = result.delimiter;
             }
             result.report.delimiter = delimiter;
-            return syntaxValidation.validate(result, header);
+            return syntaxValidation.validate(result, header, scrubOptions);
         })
         .then((result) => {
             if(result.report) {

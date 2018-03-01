@@ -113,7 +113,7 @@ module.exports = {
             })
             .then((results) => {
                 console.log('Starting verification...');
-                return helper.verification.start(results, header);
+                return helper.verification.start(results, header, scrubOptions);
             })
             .then((result) => {
                 report.endTime = new Date();

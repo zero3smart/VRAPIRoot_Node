@@ -7,7 +7,7 @@ const promise = require('bluebird');
 const global = require('../../../config/global');
 const commonHelper = require('../../common');
 
-let remove = (results, header) => {
+let remove = (results, header, scrubOptions) => {
 
     let dbClient = dbHelper.dbClient;
     let containsHeader = false;
@@ -45,6 +45,12 @@ let remove = (results, header) => {
                 collections = _.map(collections, 'name');
 
                 return promise.map(collections, (collection) => {
+
+                    let reportConfig = commonHelper.getReportConfig(collection);
+
+                    if(!scrubOptions[reportConfig.paramName]) {
+                        return;
+                    }
 
                     return new promise(function (resolve, reject) {
                         dbClient.collection(collection).find({}, {email: 1, _id: 0})

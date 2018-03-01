@@ -70,7 +70,7 @@ let fixLatinCharacters = (email) => {
     return email;
 };
 
-let validate = (result, header) => {
+let validate = (result, header, scrubOptions) => {
     return getFuzzyMatcherDomains()
         .then((domains) => {
             return {
@@ -80,11 +80,11 @@ let validate = (result, header) => {
             };
         })
         .then( (params) => {
-            return validateSyntax(params.result, params.header, params.fuzzyMatch);
+            return validateSyntax(params.result, params.header, params.fuzzyMatch, scrubOptions);
         });
 };
 
-let validateSyntax = (result, header, fuzzyMatch) => {
+let validateSyntax = (result, header, fuzzyMatch, scrubOptions) => {
     var dataCollection = result.data;
     var clearedEmails = [];
     var email = null;
@@ -120,57 +120,58 @@ let validateSyntax = (result, header, fuzzyMatch) => {
             email = data[emailIndex];
         }
 
-        if (!lengthCheck(email)) {
+        if (scrubOptions.longEmails && !lengthCheck(email)) {
             report.longEmails.push(email);
             return;
         }
-        else if (!spaceCharacterCheck(email)) {
+        else if (scrubOptions.syntaxErrors && !spaceCharacterCheck(email)) {
             report.syntaxErrors.push(email);
             return;
         }
-        else if (!numOfDotOccurencesCheck(email)) {
+        else if (scrubOptions.syntaxErrors && !numOfDotOccurencesCheck(email)) {
             report.syntaxErrors.push(email);
             return;
         }
-        else if (!numOfAtTheRateOfOccurencesCheck(email)) {
+        else if (scrubOptions.syntaxErrors && !numOfAtTheRateOfOccurencesCheck(email)) {
             report.syntaxErrors.push(email);
             return;
         }
-        else if (!specialCharacterCheck(email)) {
+        else if (scrubOptions.syntaxErrors && !specialCharacterCheck(email)) {
             report.syntaxErrors.push(email);
             return;
         }
-        else if (!asciiCharacterCheck(email)) {
+        else if (scrubOptions.syntaxErrors && !asciiCharacterCheck(email)) {
             report.syntaxErrors.push(email);
             return;
         }
-        else if (!botAddressCheck(email)) {
+        else if (scrubOptions.seeds && !botAddressCheck(email)) {
             report.seeds.push(email);
             return;
         }
 
-        fixedMisSpelledEmail = fixMisSpelled(email, fuzzyMatch);
-        if(email !== fixedMisSpelledEmail) {
-            report.fixedMisSpelledDomains.push(fixedMisSpelledEmail);
-            if(containsHeader) {
-                data[emailColumnHeader] = fixedMisSpelledEmail;
+        if(scrubOptions.fixedMisSpelledDomains) {
+            fixedMisSpelledEmail = fixMisSpelled(email, fuzzyMatch);
+            if(email !== fixedMisSpelledEmail) {
+                report.fixedMisSpelledDomains.push(fixedMisSpelledEmail);
+                if(containsHeader) {
+                    data[emailColumnHeader] = fixedMisSpelledEmail;
+                }
+                else {
+                    data[emailIndex] = fixedMisSpelledEmail;
+                }
             }
-            else {
-                data[emailIndex] = fixedMisSpelledEmail;
-            }
-            clearedEmails.push(data);
-            return;
         }
+        if(scrubOptions.fixedLatinLetters) {
+            fixedLatinEmail = fixLatinCharacters(email);
 
-        fixedLatinEmail = fixLatinCharacters(email);
-
-        if(email !== fixedLatinEmail) {
-            report.fixedLatinLetters.push(fixedLatinEmail);
-            if(containsHeader) {
-                data[emailColumnHeader] = fixedLatinEmail;
-            }
-            else {
-                data[emailIndex] = fixedLatinEmail;
+            if(email !== fixedLatinEmail) {
+                report.fixedLatinLetters.push(fixedLatinEmail);
+                if(containsHeader) {
+                    data[emailColumnHeader] = fixedLatinEmail;
+                }
+                else {
+                    data[emailIndex] = fixedLatinEmail;
+                }
             }
         }
 
@@ -179,12 +180,16 @@ let validateSyntax = (result, header, fuzzyMatch) => {
     });
 
     var saveReports = [];
+    var reportConfig = null;
 
     _.forOwn(report, function (value, key) {
-        saveReports.push({
-            reportName: commonHelper.getReportName(key),
-            data: value
-        });
+        reportConfig = commonHelper.getReportConfig(key);
+        if(scrubOptions[reportConfig.paramName]) {
+            saveReports.push({
+                reportName: reportConfig.reportName,
+                data: value
+            });
+        }
     });
     //report.saveReports
     result.report = result.report || {};

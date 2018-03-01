@@ -11,7 +11,7 @@ const global = require('../../../config/global');
 const commonHelper = require('../../common');
 const collection = 'static_list_roles';
 
-let remove = (results, header) => {
+let remove = (results, header, scrubOptions) => {
 
     let dbClient = dbHelper.dbClient;
     let containsHeader = false;
@@ -29,6 +29,13 @@ let remove = (results, header) => {
         if (!result || !result.data.length) {
             return;
         }
+
+        let reportConfig = commonHelper.getReportConfig(collection);
+
+        if(!scrubOptions[reportConfig.paramName]) {
+            return;
+        }
+
         if (containsHeader) {
             for (var key in result.data[0]) {
                 if (_.includes(global.emailKeyNames, key.toLowerCase())) {

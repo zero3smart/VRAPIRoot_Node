@@ -55,17 +55,25 @@ let getReportMapper = () => {
         });
 };
 
-let getReportName = (keyName) => {
-    let reportName = '';
+let getReportConfig = (keyName) => {
+    let matchedReportConfig = null;
 
     let reportOb =  _.find(config.settings.reportMapper, {keyName: keyName});
     if(!reportOb || !reportOb.reportName) {
-        reportName = keyName;
+        matchedReportConfig = {
+            reportName: keyName,
+            keyName: keyName,
+            paramName: null
+        };
     }
     else {
-        reportName = reportOb.reportName;
+        matchedReportConfig = reportOb
     }
-    return reportName;
+    return matchedReportConfig;
+};
+
+let getReportName = (keyName) => {
+    return getReportConfig(keyName).reportName;
 };
 
 let getHeaderInfo = (result, header) => {
@@ -141,5 +149,6 @@ module.exports = {
     isFileCompatible: isFileCompatible,
     getUserFTPConfiguration: getUserFTPConfiguration,
     getReportMapper: getReportMapper,
-    getReportName: getReportName
+    getReportName: getReportName,
+    getReportConfig: getReportConfig
 };

@@ -4,9 +4,14 @@
 
 const mxHandler = require('./mx');
 
-let start = (results, header) => {
+let start = (results, header, scrubOptions) => {
     console.log('starting with mxHandler.checkEmail...');
-    return mxHandler.checkEmail(results, header);
+    if(scrubOptions.mxOnly) {
+        return mxHandler.checkEmail(results, header);
+    }
+    else {
+        return results;
+    }
 };
 
 module.exports = {

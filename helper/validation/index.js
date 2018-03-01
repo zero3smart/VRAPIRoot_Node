@@ -14,7 +14,7 @@ let startValidation = (directory, files, header, scrubOptions) => {
         return readFileAndRemoveDuplicates(directory, file, header, scrubOptions);
     }).then((result) => {
         console.log('staticRemover.start');
-        return staticRemover.start(result, header);
+        return staticRemover.start(result, header, scrubOptions);
     });
 };
 

@@ -8,24 +8,24 @@ const staticListBadWords = require('./words');
 const staticListRoles = require('./role');
 
 
-let start = (result, header) => {
+let start = (result, header, scrubOptions) => {
     console.log('starting with staticListEmailsRemover...');
-    return staticListEmailsRemover.remove (result, header)
+    return staticListEmailsRemover.remove (result, header, scrubOptions)
         .then((result) => {
             console.log('starting with staticListDomainsRemover...');
-            return staticListDomainsRemover.remove(result, header);
+            return staticListDomainsRemover.remove(result, header, scrubOptions);
         })
         .then((result) => {
             console.log('starting with staticListEndingsRemover...');
-            return staticListEndingsRemover.remove(result, header);
+            return staticListEndingsRemover.remove(result, header, scrubOptions);
         })
         .then((result) => {
             console.log('starting with staticListBadWords...');
-            return staticListBadWords.remove(result, header);
+            return staticListBadWords.remove(result, header, scrubOptions);
         })
         .then((result) => {
             console.log('starting with staticListRoles...');
-            return staticListRoles.remove(result, header);
+            return staticListRoles.remove(result, header, scrubOptions);
         });
 };
 

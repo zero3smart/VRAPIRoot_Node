@@ -38,6 +38,15 @@ let getWhiteListedDomains = () => {
         });
 };
 
+let getDNSServers = () => {
+    return dbHelper.dbClient.collection('dns_servers')
+        .find({})
+        .toArray()
+        .then((servers) => {
+            return _.map(servers, 'server');
+        });
+};
+
 let getUserFTPConfiguration = (userName) => {
     return dbHelper.dbClient.collection('client_ftpmaster')
         .findOne({UserName: userName})
@@ -150,5 +159,6 @@ module.exports = {
     getUserFTPConfiguration: getUserFTPConfiguration,
     getReportMapper: getReportMapper,
     getReportName: getReportName,
-    getReportConfig: getReportConfig
+    getReportConfig: getReportConfig,
+    getDNSServers: getDNSServers
 };

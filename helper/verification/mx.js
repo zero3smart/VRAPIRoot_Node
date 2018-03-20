@@ -12,10 +12,19 @@ let checkEmail = (results, header) => {
     let listOfEmails = [];
     let domainsList = [];
     let failedDomains = [];
+    let dnsServers = [];
 
-    return commonHelper.getWhiteListedDomains()
+    return commonHelper.getDNSServers().then((servers) => {
+        dnsServers = servers;
+        dns.setServers(dnsServers);
+        console.log(dnsServers);
+        console.log('dnsServers found: ', dnsServers.length)
+    })
+        .then(() => {
+            return commonHelper.getWhiteListedDomains();
+        })
         .then((whiteListedDomains) => {
-
+            console.log('whitelisteddomains: ', whiteListedDomains.length);
             return promise.map(results, (result) => {
                 if (!result || !result.data.length) {
                     return;
@@ -34,16 +43,14 @@ let checkEmail = (results, header) => {
                     .difference(whiteListedDomains).value();
 
                 console.log('need mx check for : ' + domainsList.length + ' domain');
-
-                return promise.map(domainsList, (domain) => {
-
+                return promise.map(domainsList, (domain, index) => {
                     return dns.resolveMxAsync(domain)
                         .then((addresses) => {
                             return true;
                         })
                         .catch((e) => {
-                            if(e.code) {
-                                switch(e.code) {
+                            if (e.code) {
+                                switch (e.code) {
                                     case 'ENOTFOUND':
                                     case 'ENODATA':
                                     case 'ESERVFAIL':
@@ -61,17 +68,9 @@ let checkEmail = (results, header) => {
                                 console.log(e);
                                 throw e;
                             }
-                            /*if (e.code === 'ENOTFOUND') {
-                                failedDomains.push(e.hostname);
-                            }
-                            else {
-                                console.log('ERROR CATCHED IN MX NESTED 3!');
-                                console.log(e);
-                                throw e;
-                            }*/
                         });
 
-                })
+                }, {concurrency: dnsServers.length})
                     .then(()=> {
                         var emailsToRemoved = [];
                         result.report.saveReports = result.report.saveReports || [];

@@ -42,7 +42,7 @@ let saveReports = (report, directory, header) => {
             return createPDFReport(report, directory);
         })
         .then(() => {
-            return zipHelper.zip(cleanDirectory, report.fileId, 'zip');
+            return zipHelper.zip(cleanDirectory, report.cleanId, 'zip');
         })
         .then(() => {
             return fileHelper.saveZipToFTP(report);
@@ -74,7 +74,7 @@ let createPDFReport = (report, directory) => {
     let tableString = [
         '<table cellpadding="2" style="border: 0px">',
         keyValueRow('Customer:', report.userName),
-        keyValueRow('File:', report.fileId),
+        keyValueRow('Clean Id:', report.cleanId),
         keyValueRow('Date:', new Date()),
         keyValueRow('Total pre clean emails:', report.totalPreCleanRecords),
         keyValueRow('Total cleaned emails:', report.totalRecordsAfterClean),

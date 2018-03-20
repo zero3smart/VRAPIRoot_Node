@@ -45,7 +45,7 @@ module.exports = {
         let query = request.body || {};
         let dirInfo = {
             fileName: query.fileName,
-            fileId: new Date().getTime(),
+            cleanId: new Date().getTime(),
             userName: query.userName,
         };
         let header = query.header || {
@@ -56,7 +56,7 @@ module.exports = {
         let report = {
             startTime: new Date(),
             userName: dirInfo.userName,
-            fileId: dirInfo.fileId
+            cleanId: dirInfo.cleanId
         };
 
         let unKnownScrubParams = _.omitBy(scrubParams, function(value, key){return config.global.scrubOption.hasOwnProperty(key);});
@@ -71,7 +71,7 @@ module.exports = {
         }
         let scrubOptions = _.extend({}, config.global.scrubOption, scrubParams);
 
-        let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId;
+        let directory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.cleanId;
 
         if (!_.isEmpty(_.pickBy(dirInfo, _.isNil))) {
             responseHelper.failure(response, {
@@ -143,9 +143,18 @@ module.exports = {
                 return reportHelper.saveReports(report, directory, header);
 
             })
-            .then(() => {
+            .then((finalReport) => {
                 console.log('# 6. Sending Response');
-                responseHelper.success(response);
+                finalReport.files.forEach(function (file) {
+                    delete file.data;
+                    file.reports.forEach(function (fileReport) {
+                        fileReport.numOfRecords = fileReport.data.length;
+                        delete fileReport.data;
+                    });
+                });
+                responseHelper.success(response, {
+                    summary: finalReport
+                });
             })
             .catch((e) => {
                 console.log('ERROR CATCHED IN API STEPS!');

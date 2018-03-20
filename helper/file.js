@@ -76,7 +76,7 @@ let getFTPFiles = (dirInfo) => {
             });
 
             let remoteFile = ftpConfig.RootFolder + '/' + dirInfo.fileName;
-            let localDirectory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.fileId + '/';
+            let localDirectory = config.global.userUploadsDir + '/' + dirInfo.userName + '/' + dirInfo.cleanId + '/';
             let localFile = localDirectory + dirInfo.fileName;
             ftp = promise.promisifyAll(ftp);
 
@@ -97,26 +97,38 @@ let getFTPFiles = (dirInfo) => {
 };
 
 let saveZipToFTP = (report) => {
-    console.log('writing the zip to ftp 0');
     let ftp = null;
 
     return commonHelper.getUserFTPConfiguration(report.userName)
         .then((ftpConfig) => {
-            console.log('writing the zip to ftp')
+            console.log('writing the zip to ftp');
             ftp = new JSFtp({
                 host: ftpConfig.HostName,
                 port: ftpConfig.port || 21,
                 user: ftpConfig.UserName, // defaults to "anonymous"
                 pass: ftpConfig.Password // defaults to "@anonymous"
             });
-            let remoteFile = 'clean/' + report.fileId + '.zip';
-            let localDirectory = config.global.userUploadsDir + '/' + report.userName + '/' + report.fileId + '/';
-            let localFile = localDirectory + 'clean/' + report.fileId + '.zip';
+            let remoteFile = 'clean/' + report.cleanId + '.zip';
+            let localDirectory = config.global.userUploadsDir + '/' + report.userName + '/' + report.cleanId + '/';
+            let localFile = localDirectory + 'clean/' + report.cleanId + '.zip';
 
             ftp = promise.promisifyAll(ftp);
 
-            return ftp.putAsync(localFile, remoteFile);
+            return ftp.putAsync(localFile, remoteFile)
+                .catch((e) => {
+                    console.log('ERROR CATCHED IN File putAsync!');
+                    console.log(e);
+                    throw e;
+                });
 
+        })
+        .then( () => {
+            return report;
+        })
+        .catch((e) => {
+            console.log('ERROR CATCHED IN REPORT!');
+            console.log(e);
+            throw e;
         });
 
 };

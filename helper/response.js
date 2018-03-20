@@ -2,11 +2,21 @@
  * Created by titu on 10/17/16.
  */
 
+const _ = require('lodash');
+
 let success = (response, data) => {
-    response.status(200).json({
-        success: true,
-        data: data
-    });
+
+    let successResponse = {
+        success: true
+    };
+
+    if (data) {
+        _.extend(successResponse, {
+            data: data
+        });
+    }
+
+    response.status(200).json(successResponse);
 };
 
 let failure = (response, err) => {

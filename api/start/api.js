@@ -142,9 +142,7 @@ module.exports = {
 
             })
             .then(() => {
-                responseHelper.success(response, {
-                    report: true
-                });
+                responseHelper.success(response);
             })
             .catch((e) => {
                 console.log(e);

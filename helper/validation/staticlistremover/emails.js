@@ -48,49 +48,48 @@ let remove = (results, header, scrubOptions) => {
 
                     let reportConfig = commonHelper.getReportConfig(collection);
 
-                    if(!scrubOptions[reportConfig.paramName]) {
+                    if (!scrubOptions[reportConfig.paramName]) {
                         return;
                     }
 
-                    return new promise(function (resolve, reject) {
-                        dbClient.collection(collection).find({}, {email: 1, _id: 0})
-                            .toArray(function (err, recordsInCollection) {
-                                if (err) {
-                                    reject(err)
-                                }
-                                else {
-                                    console.log('Retreived ', recordsInCollection.length, ' records from ', collection);
-                                    var matchedRecords = _.chain(recordsInCollection)
-                                        .compact()
-                                        .map(function (record, i) {
-                                            if (!record.email) {
-                                                console.log('Found an email with problem at ', i, ' : ', record);
-                                                return null;
-                                            }
-                                            return record.email.toString().toLowerCase();
-                                        })
-                                        .intersection(listOfEmails)
-                                        .value();
+                    var emailChunks = _.chunk(listOfEmails, 1000);
+                    var matchedRecords = [];
+                    console.log('total chunks: ', emailChunks.length);
 
-                                    //TODO: nedd to do a _.difference to update the result.data
-                                    console.log('Got matchedRecords for collection in Static email comparison: ' + collection + ' : ' + matchedRecords.length);
-                                    resolve({matchedRecords: matchedRecords, collection: collection});
+                    return promise.map(emailChunks, function (emailChunk) {
+                        return new promise(function (resolve, reject) {
+                            dbClient.collection(collection).find({
+                                email: {
+                                    $in: emailChunk
                                 }
-                            });
+                            }, {email: 1, _id: 0})
+                                .toArray(function (err, matchedOnes) {
+                                    if (err) {
+                                        reject(err)
+                                    }
+                                    else {
+                                        console.log('Retreived ', matchedOnes.length, ' records from ', collection);
+                                        if (matchedOnes.length) {
+                                            matchedRecords.push(_.map(matchedOnes, 'email'));
+                                        }
+                                        resolve();
+                                    }
+                                });
+                        })
                     })
-                        .then(function (queryResult) {
+                        .then(function () {
 
-                            if (queryResult.matchedRecords.length) {
-                                emailsToRemoved = _.union(emailsToRemoved, queryResult.matchedRecords);//adding all removed emails
+                            if (matchedRecords.length) {
+                                emailsToRemoved = _.union(emailsToRemoved, matchedRecords);//adding all removed emails
                             }
 
                             result.report.saveReports = result.report.saveReports || [];
                             result.report.saveReports.push({
                                 reportName: commonHelper.getReportName(collection),
-                                data: queryResult.matchedRecords
+                                data: matchedRecords
                             });
 
-                            listOfEmails = _.difference(listOfEmails, queryResult.matchedRecords);
+                            listOfEmails = _.difference(listOfEmails, matchedRecords);
                             return;
                         })
                 });

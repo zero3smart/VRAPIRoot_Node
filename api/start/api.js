@@ -82,6 +82,7 @@ module.exports = {
         let time = new Time();
         time.start('clean');
 
+        console.log('#1. Fetching FTP files');
         let steps = fileHelper.getFTPFiles(dirInfo)
             .then((files) => {
                 if (files.error) {
@@ -101,6 +102,7 @@ module.exports = {
                 return files;
             })
             .then((files)=> {
+                console.log('#2. Loading Report Mapper.');
                 return commonHelper.getReportMapper()
                     .then( (reportMapper) => {
                         config.settings.reportMapper = reportMapper;
@@ -108,11 +110,11 @@ module.exports = {
                     });
             })
             .then((files) => {
-                console.log('Starting validation...');
+                console.log('#3. Starting Validation');
                 return helper.validation.start(directory, files, header, scrubOptions);
             })
             .then((results) => {
-                console.log('Starting verification...');
+                console.log('#4. Starting Verification');
                 return helper.verification.start(results, header, scrubOptions);
             })
             .then((result) => {
@@ -137,14 +139,16 @@ module.exports = {
                     }
                 });
                 report.timeRequired = time.end('clean');
-
+                console.log('# 5. Saving Reports');
                 return reportHelper.saveReports(report, directory, header);
 
             })
             .then(() => {
+                console.log('# 6. Sending Response');
                 responseHelper.success(response);
             })
             .catch((e) => {
+                console.log('ERROR CATCHED IN API STEPS!');
                 console.log(e);
                 responseHelper.failure(response, {
                     message: config.message.unknown_error

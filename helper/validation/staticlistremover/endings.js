@@ -131,7 +131,12 @@ let remove = (results, header, scrubOptions) => {
                 });
 
             })
-            .then(()=> result);
+            .then(()=> result)
+            .catch((e) => {
+                console.log('ERROR CATCHED IN ENDINGS!');
+                console.log(e);
+                throw e;
+            });
     });
 
 };

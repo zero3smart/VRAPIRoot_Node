@@ -88,12 +88,28 @@ let remove = (results, header, scrubOptions) => {
                                 }
                             });
                     })
+                        .catch((e) => {
+                            console.log('ERROR CATCHED IN WORDS NESTED 2!');
+                            console.log(e);
+                            throw e;
+                        });
                 })
 
             })
+            .catch((e) => {
+                console.log('ERROR CATCHED IN WORDS NESTED 1!');
+                console.log(e);
+                throw e;
+            });
 
 
-    }).then(() => results);
+    })
+        .then(() => results)
+        .catch((e) => {
+            console.log('ERROR CATCHED IN WORDS!');
+            console.log(e);
+            throw e;
+        });
 
 };
 

@@ -75,7 +75,11 @@ let remove = (results, header, scrubOptions) => {
                                         resolve();
                                     }
                                 });
-                        })
+                        }).catch((e) => {
+                            console.log('ERROR CATCHED IN EMAILS NESTED 2!');
+                            console.log(e);
+                            throw e;
+                        });
                     })
                         .then(function () {
 
@@ -92,6 +96,11 @@ let remove = (results, header, scrubOptions) => {
                             listOfEmails = _.difference(listOfEmails, matchedRecords);
                             return;
                         })
+                        .catch((e) => {
+                            console.log('ERROR CATCHED IN EMAILS NESTED 1!');
+                            console.log(e);
+                            throw e;
+                        });
                 });
 
             })
@@ -111,7 +120,12 @@ let remove = (results, header, scrubOptions) => {
                 });
 
             })
-            .then(()=> result);
+            .then(()=> result)
+            .catch((e) => {
+                console.log('ERROR CATCHED IN EMAILS!');
+                console.log(e);
+                throw e;
+            });
     });
 
 };

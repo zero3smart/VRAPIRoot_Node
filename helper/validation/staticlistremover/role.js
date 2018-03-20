@@ -91,8 +91,18 @@ let remove = (results, header, scrubOptions) => {
 
                 return;
             })
+            .catch((e) => {
+                console.log('ERROR CATCHED IN ROLES NESTED 1!');
+                console.log(e);
+                throw e;
+            });
     })
-        .then(()=> results);
+        .then(()=> results)
+        .catch((e) => {
+            console.log('ERROR CATCHED IN ROLES!');
+            console.log(e);
+            throw e;
+        });
 
 };
 

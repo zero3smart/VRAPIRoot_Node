@@ -39,12 +39,36 @@ let checkEmail = (results, header) => {
 
                     return dns.resolveMxAsync(domain)
                         .then((addresses) => {
-
+                            return true;
                         })
-                        .catch((err) => {
-                            if (err.code === 'ENOTFOUND') {
-                                failedDomains.push(err.hostname);
+                        .catch((e) => {
+                            if(e.code) {
+                                switch(e.code) {
+                                    case 'ENOTFOUND':
+                                    case 'ENODATA':
+                                    case 'ESERVFAIL':
+                                        failedDomains.push(e.hostname);
+                                        break;
+                                    case 'ETIMEOUT':
+                                        console.log('timeout mx check for : ', domain);
+                                        break;
+                                    default:
+                                        console.log(e.code, ': error for mx check for : ', domain);
+                                }
                             }
+                            else {
+                                console.log('ERROR CATCHED IN MX NESTED 3!');
+                                console.log(e);
+                                throw e;
+                            }
+                            /*if (e.code === 'ENOTFOUND') {
+                                failedDomains.push(e.hostname);
+                            }
+                            else {
+                                console.log('ERROR CATCHED IN MX NESTED 3!');
+                                console.log(e);
+                                throw e;
+                            }*/
                         });
 
                 })
@@ -86,13 +110,28 @@ let checkEmail = (results, header) => {
                                 data: emailsToRemoved
                             }
                         );
+                    })
+                    .catch((e) => {
+                        console.log('ERROR CATCHED IN MX NESTED 2!');
+                        console.log(e);
+                        throw e;
                     });
 
 
-            });
+            })
+                .catch((e) => {
+                    console.log('ERROR CATCHED IN MX NESTED 1!');
+                    console.log(e);
+                    throw e;
+                });
 
         })
-        .then(()=> results);
+        .then(()=> results)
+        .catch((e) => {
+            console.log('ERROR CATCHED IN MX!');
+            console.log(e);
+            throw e;
+        });
 };
 
 module.exports = {

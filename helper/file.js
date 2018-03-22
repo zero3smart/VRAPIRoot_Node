@@ -85,15 +85,32 @@ let getFTPFiles = (dirInfo) => {
                     error: 'File is not compatible for processing!'
                 };
             }
+            console.log('Ensuring the directory existence: ', localDirectory);
             return ensureDirectoryExists(localDirectory)
                 .then(() => {
+                    console.log('Directory existence confirmed.');
                     return ftp.getAsync(remoteFile, localFile)
                         .then( () => {
+                            console.log('File fetched completed.')
                             return prepareFiles(localDirectory);
+                        }).catch((e) => {
+                            console.log('ERROR CATCHED IN ensure directory exist!');
+                            console.log(e);
+                            throw e;
                         })
-                });
+                })
+                .catch((e) => {
+                    console.log('ERROR CATCHED ON ensure directory exist!');
+                    console.log(e);
+                    throw e;
+                })
 
-        });
+        })
+        .catch((e) => {
+            console.log('ERROR CATCHED IN getUserFTPConfiguration call!');
+            console.log(e);
+            throw e;
+        })
 };
 
 let saveZipToFTP = (report) => {

@@ -65,7 +65,6 @@ let saveReports = (report, directory, header) => {
 let createPDFReport = (report, directory) => {
 
     let cleanDirectory = directory + '/' + settings.cleanDirectory + '/';
-
     let options = {
         "format": "Letter",
         /*"header": {
@@ -89,7 +88,7 @@ let createPDFReport = (report, directory) => {
         keyValueRow('Time required to clean:', report.timeRequired),
         '</table>'
     ].join('');
-
+    console.log('directory: ', cleanDirectory);
 
     report.files.forEach(function (file) {
         tableString += [
@@ -107,7 +106,10 @@ let createPDFReport = (report, directory) => {
 
     let html = '<div class="title">Email Scrubbing Report</div>' + pdfHeaderTemplate + css + tableString + pdfFooterTemplate;
 
+    console.log('html generation completed');
+
     return new promise(function (resolve, reject) {
+        console.log('Calling pdf.reate');
         pdf.create(html, options).toFile(cleanDirectory + 'report.pdf', function (err, res) {
             if (err) {
                 console.log('ERROR in PDF creation!');
@@ -115,6 +117,7 @@ let createPDFReport = (report, directory) => {
                 reject(err);
             }
             else {
+                console.log('PDF creation completed. Calling resolve()');
                 resolve();
             }
         });

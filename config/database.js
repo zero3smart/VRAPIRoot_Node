@@ -45,9 +45,10 @@ let getDatabaseConfig = () => {
     return config;
 };
 let getDatabaseUrl = (config) => {
+    var credential = (config.userName && config.password) ? (config.userName + ':' + config.password + '@' ) : '';
     return process.env.MONGOLAB_URI ||
         process.env.MONGOHQ_URL ||
-        config.host + ':' + config.port + '/' + config.name;
+        credential + config.host + ':' + config.port + '/' + config.name;
 };
 
 module.exports = {

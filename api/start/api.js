@@ -99,6 +99,7 @@ module.exports = {
                     steps.cancel();
                     return;
                 }
+                console.log('File fetched completed');
                 return files;
             })
             .then((files)=> {

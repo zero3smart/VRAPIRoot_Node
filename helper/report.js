@@ -109,7 +109,7 @@ let createPDFReport = (report, directory) => {
     console.log('html generation completed');
 
     return new promise(function (resolve, reject) {
-        console.log('Calling pdf.reate');
+        console.log('Calling pdf.create');
         pdf.create(html, options).toFile(cleanDirectory + 'report.pdf', function (err, res) {
             if (err) {
                 console.log('ERROR in PDF creation!');

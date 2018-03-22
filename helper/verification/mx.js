@@ -44,7 +44,10 @@ let checkEmail = (results, header) => {
 
                 console.log('need mx check for : ' + domainsList.length + ' domain');
                 return promise.map(domainsList, (domain, index) => {
-                    return dns.resolveMxAsync(domain)
+                    if(!domain) {
+                        return;
+                    }
+                    return dns.resolveMxAsync(domain.toString())
                         .then((addresses) => {
                             return true;
                         })

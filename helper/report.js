@@ -35,16 +35,24 @@ let saveReports = (report, directory, header) => {
                 .then(() => {
                     //write the clean file
                     return handler.save(fileReport.data, cleanDirectory, ('CLEANED_' + fileNameWithoutExtension), header, delimiter);
+                })
+                .catch((e) => {
+                    console.log('ERROR CATCHED IN REPORT - SAVE FILE!');
+                    console.log(e);
+                    throw e;
                 });
         }
     })
         .then(() => {
+            console.log('Creating PDF report');
             return createPDFReport(report, directory);
         })
         .then(() => {
+            console.log('Zipping all the files');
             return zipHelper.zip(cleanDirectory, report.cleanId, 'zip');
         })
         .then(() => {
+            console.log('Uploading the zip to FTP');
             return fileHelper.saveZipToFTP(report);
         }).catch((e) => {
             console.log('ERROR CATCHED IN REPORT!');
@@ -102,10 +110,13 @@ let createPDFReport = (report, directory) => {
     return new promise(function (resolve, reject) {
         pdf.create(html, options).toFile(cleanDirectory + 'report.pdf', function (err, res) {
             if (err) {
+                console.log('ERROR in PDF creation!');
                 console.log(err);
                 reject(err);
             }
-            resolve();
+            else {
+                resolve();
+            }
         });
     });
 

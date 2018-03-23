@@ -6,30 +6,37 @@ const dbHelper = require('./database');
 const config = require('../config');
 const objectID = require('mongodb').ObjectID;
 
-let updateStatus = (cleanId, userName, status) => {
+let updateStatus = (cleanId, userName, status, errorMessage) => {
 
     console.log('updating status for cleanId: ', cleanId, ' with: ', status);
     var now = new Date().getTime();
 
+    var findQuery = {
+        cleanId: cleanId,
+        userName: userName
+    };
+    var updateQuery = {
+        $set: {
+            currentStatus: config.settings.scrubbingStatus[status]
+        },
+        $push: {
+            history: {
+                date: now,
+                status: config.settings.scrubbingStatus[status]
+            }
+        }
+    };
+    var infoQuery = {
+        upsert: true,
+        multi: false
+    };
+
+    if(status === config.settings.scrubbingStatus.error && errorMessage) {
+        updateQuery.$set.errorMessage = errorMessage;
+    }
+
     return dbHelper.dbClient.collection('scrub_stats')
-        .update(
-            {
-                cleanId: cleanId,
-                userName: userName
-            }, {
-                $set: {
-                    currentStatus: config.settings.scrubbingStatus[status]
-                },
-                $push: {
-                    history: {
-                        date: now,
-                        status: config.settings.scrubbingStatus[status]
-                    }
-                }
-            }, {
-                upsert: true,
-                multi: false
-            });
+        .update(findQuery, updateQuery, infoQuery);
 
 };
 
@@ -76,6 +83,9 @@ let getStatus = (cleanId) => {
 
                 if(currentStatus.status === config.settings.scrubbingStatus.completion) {
                     status.summary = scrubStats.summary;
+                }
+                else if(currentStatus.status === config.settings.scrubbingStatus.error) {
+                    status.errorMessage = scrubStats.errorMessage;
                 }
                 return status;
             }

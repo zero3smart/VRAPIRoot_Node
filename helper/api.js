@@ -21,18 +21,14 @@ let getFTPFiles = (dirInfo, response) => {
         });
 };
 
-let validateFiles = (files, steps) => {
+let validateFiles = (dirInfo, files, steps) => {
     if (files.error) {
-        responseHelper.failure(response, {
-            message: files.error
-        });
+        statusHelper.updateStatus(dirInfo.cleanId, dirInfo.userName, settingsConfig.scrubbingStatus.error, files.error);
         steps.cancel();
         return;
     }
     else if (_.isEmpty(files)) {
-        responseHelper.failure(response, {
-            message: messageConfig.files_not_found_error
-        });
+        statusHelper.updateStatus(dirInfo.cleanId, dirInfo.userName, settingsConfig.scrubbingStatus.error, messageConfig.files_not_found_error);
         steps.cancel();
         return;
     }
@@ -95,11 +91,11 @@ let sendResponse = (finalReport, response, dirInfo) => {
         .then(() => {
             statusHelper.updateSummary(dirInfo.cleanId, dirInfo.userName, finalReport);
         })
-        .then(()=> {
-            responseHelper.success(response, {
-                summary: finalReport
-            });
-        })
+    /*.then(()=> {
+     responseHelper.success(response, {
+     summary: finalReport
+     });
+     })*/
 };
 
 let getStatus = (cleanId) => {

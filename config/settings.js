@@ -18,7 +18,7 @@ module.exports = {
     ],
     allowedZipTypes: [
         'zip',
-        //'rar',
+        'rar',
         'tar',
         'gz',
         '7z',
@@ -43,6 +43,7 @@ module.exports = {
         upload: 'upload',
         syntax: 'syntax',
         validation: 'validation',
-        completion: 'completion'
+        completion: 'completion',
+        error: 'error'
     }
 };

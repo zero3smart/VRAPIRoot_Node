@@ -96,14 +96,22 @@ module.exports = {
         let time = new Time();
         time.start('clean');
 
-        console.log('# 1. Saving User request');
-        let steps = apiHelper.saveUserRequest(dirInfo, header, scrubOptions, report.startTime)
+        console.log('# 1. Update status as upload and Save User request');
+        let steps = helper.status.updateStatus(dirInfo.cleanId, dirInfo.userName, config.settings.scrubbingStatus.upload)
+            .then(() => {
+                responseHelper.success(response, {
+                    cleanId: dirInfo.cleanId
+                });
+            })
+            .then(()=> {
+                return apiHelper.saveUserRequest(dirInfo, header, scrubOptions, report.startTime);
+            })
             .then(()=> {
                 console.log('# 2. Fetching FTP files');
                 return apiHelper.getFTPFiles(dirInfo, response);
             })
             .then((files) => {
-                return apiHelper.validateFiles(files, steps);
+                return apiHelper.validateFiles(dirInfo, files, steps);
             })
             .then((files)=> {
                 console.log('# 3. Loading Report Mapper.');
@@ -128,9 +136,9 @@ module.exports = {
             .catch((e) => {
                 console.log('ERROR CATCHED IN API STEPS!');
                 console.log(e);
-                responseHelper.failure(response, {
-                    message: config.message.unknown_error
-                });
+                //TODO:: Need to keep the e.message in error log
+                //we don't want to expose such unhandled exception to users
+                helper.status.updateStatus(dirInfo.cleanId, dirInfo.userName, config.settings.scrubbingStatus.error, config.message.unknown_error);
             });
     }
 };

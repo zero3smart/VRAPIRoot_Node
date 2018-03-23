@@ -68,6 +68,11 @@ let getFTPFiles = (dirInfo) => {
 
     return commonHelper.getUserFTPConfiguration(dirInfo.userName)
         .then((ftpConfig) => {
+            if(!ftpConfig) {
+                return {
+                    error: 'FTP configuration not found for user: ' + dirInfo.userName
+                };
+            }
             ftp = new JSFtp({
                 host: ftpConfig.HostName,
                 port: ftpConfig.port || 21,
@@ -102,7 +107,14 @@ let getFTPFiles = (dirInfo) => {
                 .catch((e) => {
                     console.log('ERROR CATCHED ON ensure directory exist!');
                     console.log(e);
-                    throw e;
+                    if(e.code && e.code === 550) {
+                        return {
+                            error: e.message
+                        }
+                    }
+                    else {
+                        throw e;
+                    }
                 })
 
         })

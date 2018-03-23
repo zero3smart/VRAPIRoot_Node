@@ -14,15 +14,16 @@ let checkEmail = (results, header) => {
     let failedDomains = [];
     let dnsServers = [];
 
-    return commonHelper.getDNSServers().then((servers) => {
-        dnsServers = servers;
-        dns.setServers(dnsServers);
-        console.log(dnsServers);
-        console.log('dnsServers found: ', dnsServers.length)
-    })
-        .then(() => {
-            return commonHelper.getWhiteListedDomains();
-        })
+    /*return commonHelper.getDNSServers().then((servers) => {
+     dnsServers = servers;
+     dns.setServers(dnsServers);
+     console.log(dnsServers);
+     console.log('dnsServers found: ', dnsServers.length)
+     })
+     .then(() => {
+     return commonHelper.getWhiteListedDomains();
+     })*/
+    return commonHelper.getWhiteListedDomains()
         .then((whiteListedDomains) => {
             console.log('whitelisteddomains: ', whiteListedDomains.length);
             return promise.map(results, (result) => {
@@ -44,7 +45,7 @@ let checkEmail = (results, header) => {
 
                 console.log('need mx check for : ' + domainsList.length + ' domain');
                 return promise.map(domainsList, (domain, index) => {
-                    if(!domain) {
+                    if (!domain) {
                         return;
                     }
                     return dns.resolveMxAsync(domain.toString())
@@ -73,7 +74,7 @@ let checkEmail = (results, header) => {
                             }
                         });
 
-                }, {concurrency: dnsServers.length})
+                }, {concurrency: 4})
                     .then(()=> {
                         var emailsToRemoved = [];
                         result.report.saveReports = result.report.saveReports || [];

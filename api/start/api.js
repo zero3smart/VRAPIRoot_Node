@@ -4,15 +4,14 @@
 
 const helper = require('../../helper');
 const responseHelper = helper.response;
-const fileHelper = helper.file;
 const searchHelper = helper.search;
-const reportHelper = helper.report;
 const config = require('../../config');
-const commonHelper = require('../../helper/common');
 const _ = require('lodash');
 const promise = require('bluebird');
 const jsonfile = require('jsonfile');
+const apiHelper = helper.api;
 const Time = require('time-diff');
+const objectID = require('mongodb').ObjectID;
 
 promise.config({
     cancellation: true
@@ -20,6 +19,20 @@ promise.config({
 
 module.exports = {
 
+    status: (request, response) => {
+        let cleanId = request.query.cleanId;
+
+        if (_.isNil(cleanId)) {
+            responseHelper.failure(response, {
+                message: config.message.missing_parameters_service_erorr
+            });
+            return;
+        }
+        apiHelper.getStatus(cleanId)
+            .then((status) => {
+                responseHelper.success(response, status);
+            });
+    },
     search: (request, response) => {
         let time = new Time();
         let email = request.query.email;
@@ -45,22 +58,24 @@ module.exports = {
         let query = request.body || {};
         let dirInfo = {
             fileName: query.fileName,
-            cleanId: new Date().getTime(),
+            cleanId: new objectID(),
             userName: query.userName,
         };
         let header = query.header || {
                 header: false,
                 emailIndex: 0
             };
-            let scrubParams = query.options || {};
+        let scrubParams = query.options || {};
         let report = {
             startTime: new Date(),
             userName: dirInfo.userName,
             cleanId: dirInfo.cleanId
         };
 
-        let unKnownScrubParams = _.omitBy(scrubParams, function(value, key){return config.global.scrubOption.hasOwnProperty(key);});
-        if(!_.isEmpty(unKnownScrubParams)){
+        let unKnownScrubParams = _.omitBy(scrubParams, function (value, key) {
+            return config.global.scrubOption.hasOwnProperty(key);
+        });
+        if (!_.isEmpty(unKnownScrubParams)) {
             responseHelper.failure(response, {
                 message: [
                     config.message.scrub_parmeter_not_supported,
@@ -83,79 +98,29 @@ module.exports = {
         time.start('clean');
 
         console.log('#1. Fetching FTP files');
-        let steps = fileHelper.getFTPFiles(dirInfo)
+        let steps = apiHelper.getFTPFiles(dirInfo, response)
             .then((files) => {
-                if (files.error) {
-                    responseHelper.failure(response, {
-                        message: files.error
-                    });
-                    steps.cancel();
-                    return;
-                }
-                else if (_.isEmpty(files)) {
-                    responseHelper.failure(response, {
-                        message: config.message.files_not_found_error
-                    });
-                    steps.cancel();
-                    return;
-                }
-                console.log('File fetched completed');
-                return files;
+                return apiHelper.validateFiles(files, steps);
             })
             .then((files)=> {
                 console.log('#2. Loading Report Mapper.');
-                return commonHelper.getReportMapper()
-                    .then( (reportMapper) => {
-                        config.settings.reportMapper = reportMapper;
-                        return files;
-                    });
+                return apiHelper.loadReportMapper(dirInfo, files);
             })
             .then((files) => {
                 console.log('#3. Starting Validation');
-                return helper.validation.start(directory, files, header, scrubOptions);
+                return apiHelper.startValidation(directory, files, header, scrubOptions, dirInfo);
             })
             .then((results) => {
                 console.log('#4. Starting Verification');
                 return helper.verification.start(results, header, scrubOptions);
             })
             .then((result) => {
-                report.endTime = new Date();
-                report.totalRecordsAfterClean = 0;
-                report.totalPreCleanRecords = 0;
-                report.files = [];
-
-                result.forEach((r) => {
-                    if (!r) {
-                        return;
-                    }
-                    report.totalRecordsAfterClean += r.data.length;
-                    report.totalPreCleanRecords += r.report.totalRecords;
-                    if (r.report) {
-                        report.files.push({
-                            fileName: r.report.fileName,
-                            reports: r.report.saveReports,
-                            totalRecords: r.report.totalRecords,
-                            data: r.data
-                        });
-                    }
-                });
-                report.timeRequired = time.end('clean');
                 console.log('# 5. Saving Reports');
-                return reportHelper.saveReports(report, directory, header);
-
+                return apiHelper.saveReports(result, report, directory, time, header);
             })
             .then((finalReport) => {
                 console.log('# 6. Sending Response');
-                finalReport.files.forEach(function (file) {
-                    delete file.data;
-                    file.reports.forEach(function (fileReport) {
-                        fileReport.numOfRecords = fileReport.data.length;
-                        delete fileReport.data;
-                    });
-                });
-                responseHelper.success(response, {
-                    summary: finalReport
-                });
+                return apiHelper.sendResponse(finalReport, response, dirInfo);
             })
             .catch((e) => {
                 console.log('ERROR CATCHED IN API STEPS!');

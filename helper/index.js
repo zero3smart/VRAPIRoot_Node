@@ -11,6 +11,8 @@ const database = require('./database');
 const searchHelper = require('./search');
 const reportHelper = require('./report');
 const commonHelper = require('./common');
+const statusHelper = require('./status');
+const apiHelper = require('./api');
 
 module.exports = {
     response: responseHelper,
@@ -22,5 +24,7 @@ module.exports = {
     database: database,
     search: searchHelper,
     report: reportHelper,
-    common: commonHelper
+    common: commonHelper,
+    status: statusHelper,
+    api: apiHelper
 };

@@ -13,19 +13,19 @@ let getDevDatabaseConfig = () => {
 let getStagingDatabaseConfig = () => {
     return {
         name: 'EmailScrub',
-        host: '205.134.243.196',
-        port: 27017/*,
-        userName: 'emailscrub',
-        password: '3Hyg13n1X8181'*/
+        host: '64.187.105.90',
+        port: 27017,
+        userName: 'vrapi',
+        password: '3Hyg13n1X8181'
     };
 };
 
 let getProductionDatabaseConfig = () => {
     return {
         name: 'EmailScrub',
-        host: '64.187.105.88',
+        host: '64.187.105.90',
         port: 27017,
-        userName: 'emailscrub',
+        userName: 'vrapi',
         password: '3Hyg13n1X8181'
     };
 };

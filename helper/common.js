@@ -64,6 +64,11 @@ let getReportMapper = () => {
         });
 };
 
+let saveUserRequest = (userRequest) => {
+    return dbHelper.dbClient.collection('user_scrub_requests')
+        .insert(userRequest);
+};
+
 let getReportConfig = (keyName) => {
     let matchedReportConfig = null;
 
@@ -160,5 +165,6 @@ module.exports = {
     getReportMapper: getReportMapper,
     getReportName: getReportName,
     getReportConfig: getReportConfig,
-    getDNSServers: getDNSServers
+    getDNSServers: getDNSServers,
+    saveUserRequest: saveUserRequest
 };

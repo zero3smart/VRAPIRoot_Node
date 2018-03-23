@@ -106,6 +106,18 @@ let getStatus = (cleanId) => {
     return statusHelper.getStatus(cleanId);
 };
 
+let saveUserRequest = (dirInfo, header, scrubOptions, timeRequested) => {
+    var userRequest = _.extend({}, dirInfo, {
+        'timeRequested': timeRequested
+    }, {
+        'header': header
+    }, {
+        'scrubOptions': scrubOptions
+    });
+
+    return commonHelper.saveUserRequest(userRequest);
+};
+
 module.exports = {
     getFTPFiles: getFTPFiles,
     validateFiles: validateFiles,
@@ -113,5 +125,6 @@ module.exports = {
     startValidation: startValidation,
     saveReports: saveReports,
     sendResponse: sendResponse,
-    getStatus: getStatus
+    getStatus: getStatus,
+    saveUserRequest: saveUserRequest
 };

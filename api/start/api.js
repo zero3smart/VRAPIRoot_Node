@@ -8,7 +8,6 @@ const searchHelper = helper.search;
 const config = require('../../config');
 const _ = require('lodash');
 const promise = require('bluebird');
-const jsonfile = require('jsonfile');
 const apiHelper = helper.api;
 const Time = require('time-diff');
 const objectID = require('mongodb').ObjectID;
@@ -97,29 +96,33 @@ module.exports = {
         let time = new Time();
         time.start('clean');
 
-        console.log('#1. Fetching FTP files');
-        let steps = apiHelper.getFTPFiles(dirInfo, response)
+        console.log('# 1. Saving User request');
+        let steps = apiHelper.saveUserRequest(dirInfo, header, scrubOptions, report.startTime)
+            .then(()=> {
+                console.log('# 2. Fetching FTP files');
+                return apiHelper.getFTPFiles(dirInfo, response);
+            })
             .then((files) => {
                 return apiHelper.validateFiles(files, steps);
             })
             .then((files)=> {
-                console.log('#2. Loading Report Mapper.');
+                console.log('# 3. Loading Report Mapper.');
                 return apiHelper.loadReportMapper(dirInfo, files);
             })
             .then((files) => {
-                console.log('#3. Starting Validation');
+                console.log('# 4. Starting Validation');
                 return apiHelper.startValidation(directory, files, header, scrubOptions, dirInfo);
             })
             .then((results) => {
-                console.log('#4. Starting Verification');
+                console.log('# 5. Starting Verification');
                 return helper.verification.start(results, header, scrubOptions);
             })
             .then((result) => {
-                console.log('# 5. Saving Reports');
+                console.log('# 6. Saving Reports');
                 return apiHelper.saveReports(result, report, directory, time, header);
             })
             .then((finalReport) => {
-                console.log('# 6. Sending Response');
+                console.log('# 7. Sending Response');
                 return apiHelper.sendResponse(finalReport, response, dirInfo);
             })
             .catch((e) => {

@@ -19,7 +19,6 @@
     "html-pdf": "^2.1.0",
     "jade": "~1.11.0",
     "jsftp": "1.5.3",
-    "jsonfile": "^2.4.0",
     "line-by-line": "^0.1.5",
     "lodash": "^4.16.4",
     "mkdirp": "^0.5.1",

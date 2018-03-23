@@ -58,7 +58,7 @@ let startValidation = (directory, files, header, scrubOptions, dirInfo) => {
 };
 
 let saveReports = (results, report, directory, time, header) => {
-    report.endTime = new Date();
+    report.endTime = new Date().getTime();
     report.totalRecordsAfterClean = 0;
     report.totalPreCleanRecords = 0;
     report.files = [];

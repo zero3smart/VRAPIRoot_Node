@@ -67,7 +67,7 @@ module.exports = {
             };
         let scrubParams = query.options || {};
         let report = {
-            startTime: new Date(),
+            startTime: new Date().getTime(),
             userName: dirInfo.userName,
             cleanId: dirInfo.cleanId
         };

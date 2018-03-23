@@ -65,13 +65,19 @@ let getStatus = (cleanId) => {
         .then((scrubStats) => {
             if (scrubStats && scrubStats.currentStatus) {
 
-                var status = _.find(scrubStats.history, function (history) {
+                var currentStatus = _.find(scrubStats.history, function (history) {
                     return history.status === scrubStats.currentStatus;
                 });
-                return {
-                    status: status.status,
-                    updatedOn: status.date
+
+                var status = {
+                    status: currentStatus.status,
+                    updatedOn: currentStatus.date
                 };
+
+                if(currentStatus.status === config.settings.scrubbingStatus.completion) {
+                    status.summary = scrubStats.summary;
+                }
+                return status;
             }
             else {
                 return 'No scrubbing process found with the provided cleanId!';

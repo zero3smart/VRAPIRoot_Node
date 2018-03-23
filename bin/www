@@ -76,6 +76,12 @@ function onError(error) {
   }
 }
 
+process.on('uncaughtException', function (err) {
+  console.error((new Date).toUTCString() + ' uncaughtException:', err.message)
+  console.error(err.stack)
+  process.exit(1);
+})
+
 /**
  * Event listener for HTTP server "listening" event.
  */

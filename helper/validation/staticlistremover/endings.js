@@ -4,7 +4,9 @@
 const dbHelper = require('../../database');
 const _ = require('lodash');
 const promise = require('bluebird');
-const global = require('../../../config/global');
+const config = require('../../../config');
+const globalSettings = config.global;
+const settings = config.settings;
 const commonHelper = require('../../common');
 
 let remove = (results, header, scrubOptions) => {
@@ -28,7 +30,7 @@ let remove = (results, header, scrubOptions) => {
         }
         if (containsHeader) {
             for (var key in result.data[0]) {
-                if (_.includes(global.emailKeyNames, key.toLowerCase())) {
+                if (_.includes(globalSettings.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
                 }
@@ -128,7 +130,7 @@ let remove = (results, header, scrubOptions) => {
 
                         });
 
-                });
+                }, {concurrency: settings.concurrency});
 
             })
             .then(()=> result)

@@ -103,7 +103,7 @@ let remove = (results, header, scrubOptions) => {
                             console.log(e);
                             throw e;
                         });
-                });
+                }, {concurrency: 1});
 
             })
             .then(() => {

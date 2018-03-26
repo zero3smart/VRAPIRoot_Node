@@ -7,6 +7,7 @@ const global = require('../config/global');
 const csvHandler = require('./validation/csv');
 const xlxHandler = require('./validation/xlx');
 const config = require('../config');
+const dns = require('dns');
 
 let getEmailParts = (email) => {
 
@@ -153,6 +154,14 @@ let isFileCompatible = (fileName) => {
     return _.includes(allowedTypes, getFileExtension(fileName));
 };
 
+let setDNSServers = () => {
+    return getDNSServers().then((servers) => {
+        dns.setServers(servers);
+        console.log('dnsServers found: ', servers.length);
+        return;
+    });
+};
+
 module.exports = {
     getEmailParts: getEmailParts,
     getWhiteListedDomains: getWhiteListedDomains,
@@ -166,5 +175,6 @@ module.exports = {
     getReportName: getReportName,
     getReportConfig: getReportConfig,
     getDNSServers: getDNSServers,
-    saveUserRequest: saveUserRequest
+    saveUserRequest: saveUserRequest,
+    setDNSServers: setDNSServers
 };

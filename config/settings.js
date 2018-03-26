@@ -45,5 +45,6 @@ module.exports = {
         validation: 'validation',
         completion: 'completion',
         error: 'error'
-    }
+    },
+    concurrency: 10
 };

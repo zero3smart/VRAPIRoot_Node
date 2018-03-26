@@ -5,6 +5,7 @@ const commonHelper = require('../common');
 const _ = require('lodash');
 const promise = require('bluebird');
 const dns = promise.promisifyAll(require("dns"));
+const settings = require('../../config/settings');
 
 let checkEmail = (results, header) => {
 
@@ -12,17 +13,10 @@ let checkEmail = (results, header) => {
     let listOfEmails = [];
     let domainsList = [];
     let failedDomains = [];
-    let dnsServers = [];
+    let dnsServers = dns.getServers();
 
-    /*return commonHelper.getDNSServers().then((servers) => {
-     dnsServers = servers;
-     dns.setServers(dnsServers);
-     console.log(dnsServers);
-     console.log('dnsServers found: ', dnsServers.length)
-     })
-     .then(() => {
-     return commonHelper.getWhiteListedDomains();
-     })*/
+    console.log('Found ', dnsServers.length, ' DNS Servers');
+
     return commonHelper.getWhiteListedDomains()
         .then((whiteListedDomains) => {
             console.log('whitelisteddomains: ', whiteListedDomains.length);
@@ -44,9 +38,14 @@ let checkEmail = (results, header) => {
                     .difference(whiteListedDomains).value();
 
                 console.log('need mx check for : ' + domainsList.length + ' domain');
+                var checkedMx = 0;
                 return promise.map(domainsList, (domain, index) => {
                     if (!domain) {
                         return;
+                    }
+                    ++checkedMx;
+                    if(checkedMx%1000 === 0) {
+                        console.log(checkedMx/1000 + 'K MX checked.')
                     }
                     return dns.resolveMxAsync(domain.toString())
                         .then((addresses) => {
@@ -74,7 +73,7 @@ let checkEmail = (results, header) => {
                             }
                         });
 
-                }, {concurrency: 4})
+                }, {concurrency: dnsServers.length})
                     .then(()=> {
                         var emailsToRemoved = [];
                         result.report.saveReports = result.report.saveReports || [];

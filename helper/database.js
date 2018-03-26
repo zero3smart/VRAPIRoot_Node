@@ -38,12 +38,13 @@ let initializeDatabase = () => {
         });
     });*/
 
-    dbClient.connect(connectionString, {
+    return dbClient.connect(connectionString, {
         promiseLibrary: blueBird
     })
         .then((dbClient) => {
             console.log("Mongo client connected successfully with database.");
             module.exports.dbClient = dbClient;
+            return;
         })
         .catch((e) => {
             console.log(e);

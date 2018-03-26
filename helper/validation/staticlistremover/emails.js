@@ -72,7 +72,7 @@ let remove = (results, header, scrubOptions) => {
                                     else {
                                         console.log('Retreived ', matchedOnes.length, ' records from ', collection);
                                         if (matchedOnes.length) {
-                                            matchedRecords.push(_.map(matchedOnes, 'email'));
+                                            matchedRecords = _.concat(matchedRecords, _.map(matchedOnes, 'email'));
                                         }
                                         resolve();
                                     }

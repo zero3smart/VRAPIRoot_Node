@@ -72,7 +72,7 @@ let onParseComplete = (results, header, scrubDuplicate) => {
 
                 if (email) {
                     record[emailColumnHeader] = email = _.toLower(email);
-                    if(scrubDuplicate) {
+                    if (scrubDuplicate) {
                         if (!csvData[email]) {
                             csvData[email] = true;
                             uniqueData.push(record);
@@ -93,7 +93,7 @@ let onParseComplete = (results, header, scrubDuplicate) => {
 
                 if (record.length && email) {
                     record[emailIndex] = email = _.toLower(email);
-                    if(scrubDuplicate) {
+                    if (scrubDuplicate) {
                         if (!csvData[email]) {
                             csvData[email] = true;
                             uniqueData.push(record);
@@ -112,7 +112,7 @@ let onParseComplete = (results, header, scrubDuplicate) => {
             saveReports: []
         };
 
-        if(scrubDuplicate) {
+        if (scrubDuplicate) {
             report.saveReports.push({
                 reportName: require('../common').getReportName('duplicates'),
                 data: duplicateData

@@ -90,7 +90,7 @@ let sendResponse = (finalReport, response, dirInfo) => {
     return statusHelper.updateStatus(dirInfo.cleanId, dirInfo.userName, config.settings.scrubbingStatus.completion)
         .then(() => {
             statusHelper.updateSummary(dirInfo.cleanId, dirInfo.userName, finalReport);
-        })
+        });
     /*.then(()=> {
      responseHelper.success(response, {
      summary: finalReport

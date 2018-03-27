@@ -95,7 +95,7 @@ let remove = (results, header, scrubOptions) => {
                             console.log(e);
                             throw e;
                         });
-                }, {concurrency: settings.concurrency});
+                }, {concurrency: 1});
 
             })
             .catch((e) => {

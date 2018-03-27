@@ -124,7 +124,7 @@ let remove = (results, header, scrubOptions) => {
                             console.log('For ', queryResult.collection, ' comparison and clean is done. returning now.');
                             return;
                         })
-                }, { concurrency: settings.concurrency});
+                }, { concurrency: 1});
 
             })
             .then(()=> result)

@@ -130,7 +130,7 @@ let remove = (results, header, scrubOptions) => {
 
                         });
 
-                }, {concurrency: settings.concurrency});
+                }, {concurrency: 1});
 
             })
             .then(()=> result)

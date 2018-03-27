@@ -129,10 +129,11 @@ let checkEmail = (results, header) => {
                     })
                     .then(()=> {
                         var emailsToRemoved = [];
-                        var advisories = {};//should be a list of key/value
+                        var advisories = [];
                         var advisoryTraps = [];
                         var mxStandardFailed = [];
                         var match;
+                        var foundAdvisory;
 
                         result.report.saveReports = result.report.saveReports || [];
                         console.log('MX Standard failed number of domains: ', matchedRecords.length);
@@ -145,11 +146,15 @@ let checkEmail = (results, header) => {
                             _.each(lookupCollection, function (lookup) {
                                 match = _.find(matchedRecords, {'IPAddress': lookup.IPAddress})
                                 if (match) {
-                                    if (!advisories[match.AdvisoryName]) {
-                                        advisories[match.AdvisoryName] = 1;
+                                    foundAdvisory = _.find(advisories, _.matchesProperty('name',match.AdvisoryName));
+                                    if (!foundAdvisory) {
+                                        advisories.push({
+                                            name: match .AdvisoryName,
+                                            value: 1
+                                        });
                                     }
                                     else {
-                                        ++advisories[match.AdvisoryName];
+                                        ++foundAdvisory.value;
                                     }
                                     _.remove(listOfEmails, function (email) {
                                         if (email.split('@')[1] == lookup.AdvisoryName) {

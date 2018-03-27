@@ -111,8 +111,8 @@ let createPDFReport = (report, directory) => {
             if (fileReport.detailReport) {
                 tableString += '<tr> <td colspan="2">'
                 tableString += '<table cellpadding="5" class="border-table">';
-                _.each(fileReport.detailReport, function (value, key) {
-                    tableString += keyValueRow(key, value);
+                _.each(fileReport.detailReport, function (detailReport) {
+                    tableString += keyValueRow(detailReport.name, detailReport.value);
                 });
                 tableString += '</td></tr>';
                 tableString += '</table>';

@@ -8,14 +8,11 @@
 const commonHelper = require('../common');
 const _ = require('lodash');
 const promise = require('bluebird');
-const dns = promise.promisifyAll(require("dns"));
 const settings = require('../../config/settings');
 const dbHelper = require('../database');
-const dnscache = require('dnscache')({
-    "enable": true,
-    "ttl": 300,
-    "cachesize": 5000000
-});
+const dnsCacheRedisHelper = require('../dnsCacheRedis');
+const dnsCache = dnsCacheRedisHelper.dnsCache;
+const dns = require('dns');
 
 let checkEmail = (results, header) => {
     let dbClient = dbHelper.dbClient;
@@ -60,7 +57,7 @@ let checkEmail = (results, header) => {
                     if (checkedMx % 1000 === 0) {
                         console.log(checkedMx / 1000 + 'K MX standard checked.');
                     }
-                    return dnscache.lookupAsync(domain.toString())
+                    return dnsCacheRedisHelper.dnsCache.lookupAsync(domain.toString())
                         .then((ip) => {
                             lookupCollection.push({
                                 AdvisoryName: domain,

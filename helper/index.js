@@ -13,6 +13,8 @@ const reportHelper = require('./report');
 const commonHelper = require('./common');
 const statusHelper = require('./status');
 const apiHelper = require('./api');
+const redisHelper = require('./redis');
+const dnsCacheRedisHelper = require('./dnsCacheRedis');
 
 module.exports = {
     response: responseHelper,
@@ -26,5 +28,7 @@ module.exports = {
     report: reportHelper,
     common: commonHelper,
     status: statusHelper,
-    api: apiHelper
+    api: apiHelper,
+    redis: redisHelper,
+    dnsCacheRedis: dnsCacheRedisHelper
 };

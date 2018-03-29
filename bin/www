@@ -9,6 +9,8 @@ const debug = require('debug')('VRRoot:server');
 const http = require('http');
 const helper = require('../helper');
 const commonHelper = helper.common;
+const redis = helper.redis;
+const dnsCacheRedis = helper.dnsCacheRedis;
 
 /**
  * Get port from environment and store in Express.
@@ -33,7 +35,16 @@ server.on('listening', onListening);
 helper.database.initialize()
     .then( () => {
       commonHelper.setDNSServers()
+          .then(() => {
+            console.log('initializing redis');
+            return redis.initialize();
+          })
+          .then(() => {
+            console.log('initializing dnsCacheRedis');
+            return dnsCacheRedis.initialize();
+          })
           .then( () => {
+            console.log('starting server');
             server.listen(port);
           });
     });

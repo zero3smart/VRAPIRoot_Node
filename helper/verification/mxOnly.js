@@ -4,12 +4,9 @@
 const commonHelper = require('../common');
 const _ = require('lodash');
 const promise = require('bluebird');
-const dns = promise.promisifyAll(require("dns"));
-const dnscache = require('dnscache')({
-    "enable": true,
-    "ttl": 300,
-    "cachesize": 5000000
-});
+const dnsCacheRedisHelper = require('../dnsCacheRedis');
+const dnsCache = dnsCacheRedisHelper.dnsCache;
+const dns = require('dns');
 const settings = require('../../config/settings');
 
 let checkEmail = (results, header) => {
@@ -52,7 +49,7 @@ let checkEmail = (results, header) => {
                     if (checkedMx % 1000 === 0) {
                         console.log(checkedMx / 1000 + 'K MX checked.')
                     }
-                    return dnscache.resolveMxAsync(domain.toString())
+                    return dnsCacheRedisHelper.dnsCache.resolveMxAsync(domain.toString())
                         .then((addresses) => {
                             return true;
                         })

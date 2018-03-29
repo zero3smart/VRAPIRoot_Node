@@ -104,7 +104,7 @@ let createPDFReport = (report, directory) => {
             '<table cellpadding="5" class="border-table">',
             keyValueRow('File Name', file.fileName),
             keyValueRow('Pre clean emails', file.totalRecords),
-            keyValueRow('Cleaned emails', file.data.length),
+            keyValueRow('Validated emails', file.data.length),
         ].join('');
         file.reports.forEach(function (fileReport) {
             tableString += keyValueRow((fileReport.reportName), fileReport.data.length);

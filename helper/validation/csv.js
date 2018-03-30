@@ -7,9 +7,10 @@ const csv = require('fast-csv');
 const _ = require('lodash');
 const babyparse = require('babyparse');
 const globalConfig = require('../../config/global');
+const log = require('../log');
 
 let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
-    console.log('readFromFileAndRemoveDupes: CSV');
+    log.info('readFromFileAndRemoveDupes: CSV');
     let containsHeader = false;
 
     return new promise((resolve, reject) => {
@@ -17,7 +18,7 @@ let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
         if (_.isObject(header) && header.header === true) {
             containsHeader = true;
         }
-        console.log('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
+        log.info('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
         babyparse.parseFiles(filePath, {
             header: containsHeader,
             complete: (results) => {
@@ -55,10 +56,10 @@ let onParseComplete = (results, header, scrubDuplicate) => {
          if in Array then a file which doesn't have header
          */
 
-        console.log('MEMORY USE: ', process.memoryUsage());
+        log.info('MEMORY USE: ', process.memoryUsage());
         if (containsHeader) { // So there is a header
             //determine the email field name/column header for email
-            for (var key in results.data[0]) {
+            for (let key in results.data[0]) {
                 if (_.includes(globalConfig.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
@@ -152,7 +153,7 @@ let save = (data, filePath, fileName, header, delimiter) => {
 
 let parseFiles = function ParseFiles(_input, _config) {
     if (Array.isArray(_input)) {
-        var results = [];
+        let results = [];
         _input.forEach(function (input) {
             if (typeof input === 'object')
                 results.push(ParseFiles(input.file, input.config));
@@ -161,24 +162,24 @@ let parseFiles = function ParseFiles(_input, _config) {
         });
         return results;
     } else {
-        var results = {
+        let results = {
             data: [],
             errors: []
         };
         if ((/(\.csv|\.txt|\.tsv|\.text)$/).test(_input)) {
             try {
-                /*var contents = fs.readFileSync(_input).toString();
+                /*let contents = fs.readFileSync(_input).toString();
                  return this.parse(contents, _config);*/
-                var me = this;
+                let me = this;
 
                 fs.readFile(_input, 'UTF-8', function (err, contents) {
                     if (err) {
-                        console.log(err);
+                        log.error(err);
                         results.errors.push(err);
                         return results;
                     }
                     else {
-                        console.log('file contents read completed within CSV handler');
+                        log.info('file contents read completed within CSV handler');
                         me.parse(contents, _config);
                     }
 

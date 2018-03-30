@@ -5,17 +5,18 @@ const _ = require('lodash');
 const dbHelper = require('./database');
 const config = require('../config');
 const objectID = require('mongodb').ObjectID;
+const log = require('./log');
 
 let updateStatus = (cleanId, userName, status, errorMessage) => {
 
-    console.log('updating status for cleanId: ', cleanId, ' with: ', status);
-    var now = new Date().getTime();
+    log.info('updating status for cleanId: ', cleanId, ' with: ', status);
+    let now = new Date().getTime();
 
-    var findQuery = {
+    let findQuery = {
         cleanId: cleanId,
         userName: userName
     };
-    var updateQuery = {
+    let updateQuery = {
         $set: {
             currentStatus: config.settings.scrubbingStatus[status]
         },
@@ -26,7 +27,7 @@ let updateStatus = (cleanId, userName, status, errorMessage) => {
             }
         }
     };
-    var infoQuery = {
+    let infoQuery = {
         upsert: true,
         multi: false
     };
@@ -42,7 +43,7 @@ let updateStatus = (cleanId, userName, status, errorMessage) => {
 
 let updateSummary = (cleanId, userName, summary) => {
 
-    console.log('updating summary for cleanId: ', cleanId);
+    log.info('updating summary for cleanId: ', cleanId);
 
     return dbHelper.dbClient.collection('scrub_stats')
         .update(
@@ -61,7 +62,7 @@ let updateSummary = (cleanId, userName, summary) => {
 
 let getStatus = (cleanId) => {
 
-    console.log('retrieving status for cleanId: ', cleanId);
+    log.info('retrieving status for cleanId: ', cleanId);
 
     if (!cleanId) {
         return 'Error! cleanId is not defined.';
@@ -72,11 +73,11 @@ let getStatus = (cleanId) => {
         .then((scrubStats) => {
             if (scrubStats && scrubStats.currentStatus) {
 
-                var currentStatus = _.find(scrubStats.history, function (history) {
+                let currentStatus = _.find(scrubStats.history, function (history) {
                     return history.status === scrubStats.currentStatus;
                 });
 
-                var status = {
+                let status = {
                     status: currentStatus.status,
                     updatedOn: currentStatus.date
                 };

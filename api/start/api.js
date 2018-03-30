@@ -9,6 +9,7 @@ const config = require('../../config');
 const _ = require('lodash');
 const promise = require('bluebird');
 const apiHelper = helper.api;
+const log = helper.log;
 const Time = require('time-diff');
 const objectID = require('mongodb').ObjectID;
 
@@ -50,9 +51,7 @@ module.exports = {
             });
     },
     clean: (request, response, params) => {
-        console.log('----- REQUEST RECEIVED -----');
-        console.log('params: ');
-        console.log(request.body);
+        log.info('----- REQUEST RECEIVED -----');
 
         let query = request.body || {};
         let dirInfo = {
@@ -96,7 +95,7 @@ module.exports = {
         let time = new Time();
         time.start('clean');
 
-        console.log('# 1. Update status as upload and Save User request');
+        log.info('# 1. Update status as upload and Save User request');
         let steps = helper.status.updateStatus(dirInfo.cleanId, dirInfo.userName, config.settings.scrubbingStatus.upload)
             .then(() => {
                 responseHelper.success(response, {
@@ -107,36 +106,34 @@ module.exports = {
                 return apiHelper.saveUserRequest(dirInfo, header, scrubOptions, report.startTime);
             })
             .then(()=> {
-                console.log('# 2. Fetching FTP files');
+                log.info('# 2. Fetching FTP files');
                 return apiHelper.getFTPFiles(dirInfo, response);
             })
             .then((files) => {
                 return apiHelper.validateFiles(dirInfo, files, steps);
             })
             .then((files)=> {
-                console.log('# 3. Loading Report Mapper.');
+                log.info('# 3. Loading Report Mapper.');
                 return apiHelper.loadReportMapper(dirInfo, files);
             })
             .then((files) => {
-                console.log('# 4. Starting Validation');
+                log.info('# 4. Starting Validation');
                 return apiHelper.startValidation(directory, files, header, scrubOptions, dirInfo);
             })
             .then((results) => {
-                console.log('# 5. Starting Verification');
+                log.info('# 5. Starting Verification');
                 return helper.verification.start(results, header, scrubOptions);
             })
             .then((result) => {
-                console.log('# 6. Saving Reports');
+                log.info('# 6. Saving Reports');
                 return apiHelper.saveReports(result, report, directory, time, header);
             })
             .then((finalReport) => {
-                console.log('# 7. Sending Response');
+                log.info('# 7. Sending Response');
                 return apiHelper.sendResponse(finalReport, response, dirInfo);
             })
             .catch((e) => {
-                console.log('ERROR CATCHED IN API STEPS!');
-                console.log(e);
-                //TODO:: Need to keep the e.message in error log
+                log.error('ERROR CATCHED IN API STEPS!', e);
                 //we don't want to expose such unhandled exception to users
                 helper.status.updateStatus(dirInfo.cleanId, dirInfo.userName, config.settings.scrubbingStatus.error, config.message.unknown_error);
             });

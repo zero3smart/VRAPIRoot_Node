@@ -10,6 +10,7 @@ const promise = require('bluebird');
 const global = require('../../../config/global');
 const commonHelper = require('../../common');
 const collection = 'static_list_roles';
+const log = require('../../log');
 
 let remove = (results, header, scrubOptions) => {
 
@@ -37,7 +38,7 @@ let remove = (results, header, scrubOptions) => {
         }
 
         if (containsHeader) {
-            for (var key in result.data[0]) {
+            for (let key in result.data[0]) {
                 if (_.includes(global.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
@@ -92,15 +93,13 @@ let remove = (results, header, scrubOptions) => {
                 return;
             })
             .catch((e) => {
-                console.log('ERROR CATCHED IN ROLES NESTED 1!');
-                console.log(e);
+                log.error('ERROR CATCHED IN ROLES NESTED 1! ', e);
                 throw e;
             });
     })
         .then(()=> results)
         .catch((e) => {
-            console.log('ERROR CATCHED IN ROLES!');
-            console.log(e);
+            log.error('ERROR CATCHED IN ROLES! ', e);
             throw e;
         });
 

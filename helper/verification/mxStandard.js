@@ -11,8 +11,8 @@ const promise = require('bluebird');
 const settings = require('../../config/settings');
 const dbHelper = require('../database');
 const dnsCacheRedisHelper = require('../dnsCacheRedis');
-const dnsCache = dnsCacheRedisHelper.dnsCache;
 const dns = require('dns');
+const log = require('../log');
 
 let checkEmail = (results, header) => {
     let dbClient = dbHelper.dbClient;
@@ -24,11 +24,11 @@ let checkEmail = (results, header) => {
     let lookupCollection = [];
     let failedMX = [];
     let advisoryCollection = 'advisorymaster';
-    var matchedRecords = [];
+    let matchedRecords = [];
 
     return commonHelper.getWhiteListedDomains()
         .then((whiteListedDomains) => {
-            console.log('whitelisteddomains: ', whiteListedDomains.length);
+            log.info('whitelisteddomains: ', whiteListedDomains.length);
             return promise.map(results, (result) => {
                 if (!result || !result.data.length) {
                     return;
@@ -46,8 +46,8 @@ let checkEmail = (results, header) => {
                     .uniq()
                     .difference(whiteListedDomains).value();
 
-                console.log('need mx standard check for : ' + domainsList.length + ' domain');
-                var checkedMx = 0;
+                log.info('need mx standard check for : ' + domainsList.length + ' domain');
+                let checkedMx = 0;
 
                 return promise.map(domainsList, (domain, index) => {
                     if (!domain) {
@@ -55,14 +55,14 @@ let checkEmail = (results, header) => {
                     }
                     ++checkedMx;
                     if (checkedMx % 1000 === 0) {
-                        console.log(checkedMx / 1000 + 'K MX standard checked.');
+                        log.info(checkedMx / 1000 + 'K MX standard checked.');
                     }
                     return dnsCacheRedisHelper.dnsCache.lookupAsync(domain.toString())
                         .then((ip) => {
                             lookupCollection.push({
                                 AdvisoryName: domain,
                                 IPAddress: ip
-                            })
+                            });
                             return;
                         })
                         .catch((e) => {
@@ -74,15 +74,14 @@ let checkEmail = (results, header) => {
                                         failedMX.push(domain);
                                         break;
                                     case 'ETIMEOUT':
-                                        console.log('timeout mx Standard check for : ', domain);
+                                        log.warn('timeout mx Standard check for : ', domain);
                                         break;
                                     default:
-                                        console.log(e.code, ': error for mx Standard check for : ', domain);
+                                        log.warn(e.code, ': error for mx Standard check for : ', domain);
                                 }
                             }
                             else {
-                                console.log('ERROR CATCHED IN MX NESTED 3!');
-                                console.log(e);
+                                log.error('ERROR CATCHED IN MX NESTED 3! ', e);
                                 throw e;
                             }
                         });
@@ -94,10 +93,10 @@ let checkEmail = (results, header) => {
                         if (!lookupCollection) {
                             return;
                         }
-                        var lookupIps = _.map(lookupCollection, 'IPAddress');
-                        var chunks = _.chunk(lookupIps, 1000);
+                        let lookupIps = _.map(lookupCollection, 'IPAddress');
+                        let chunks = _.chunk(lookupIps, 1000);
 
-                        console.log('Chunks created in MX Standard: ', chunks.length);
+                        log.info('Chunks created in MX Standard: ', chunks.length);
                         return promise.map(chunks, function (chunk) {
                             return new promise(function (resolve, reject) {
                                 dbClient.collection(advisoryCollection).find({
@@ -110,7 +109,7 @@ let checkEmail = (results, header) => {
                                             reject(err);
                                         }
                                         else {
-                                            console.log('Retreived ', matchedOnes.length, ' records from ', advisoryCollection);
+                                            log.info('Retreived ', matchedOnes.length, ' records from ', advisoryCollection);
                                             if (matchedOnes.length) {
                                                 matchedRecords = _.concat(matchedRecords, matchedOnes);
                                             }
@@ -118,30 +117,29 @@ let checkEmail = (results, header) => {
                                         }
                                     });
                             }).catch((e) => {
-                                console.log('ERROR CATCHED IN MX STANDARD CHUNK CHECK!');
-                                console.log(e);
+                                log.error('ERROR CATCHED IN MX STANDARD CHUNK CHECK! ', e);
                                 throw e;
                             });
                         }, {concurrency: settings.concurrency})
                     })
                     .then(()=> {
-                        var emailsToRemoved = [];
-                        var advisories = [];
-                        var advisoryTraps = [];
-                        var mxStandardFailed = [];
-                        var match;
-                        var foundAdvisory;
+                        let emailsToRemoved = [];
+                        let advisories = [];
+                        let advisoryTraps = [];
+                        let mxStandardFailed = [];
+                        let match;
+                        let foundAdvisory;
 
                         result.report.saveReports = result.report.saveReports || [];
-                        console.log('MX Standard failed number of domains: ', matchedRecords.length);
-                        console.log('MX Standard failed A Records: ', failedMX.length);
-                        console.log('Sample Matched Data: ');
-                        console.log(matchedRecords[0])
+                        log.info('MX Standard failed number of domains: ', matchedRecords.length);
+                        log.info('MX Standard failed A Records: ', failedMX.length);
+                        log.info('Sample Matched Data: ');
+                        log.info('Lookup collection length: ', lookupCollection.length);
 
-                        console.log('LIST OF EMAILS WERE: ', listOfEmails.length);
+                        log.info('LIST OF EMAILS WERE: ', listOfEmails.length);
                         if (lookupCollection.length) {
                             _.each(lookupCollection, function (lookup) {
-                                match = _.find(matchedRecords, {'IPAddress': lookup.IPAddress})
+                                match = _.find(matchedRecords, {'IPAddress': lookup.IPAddress});
                                 if (match) {
                                     foundAdvisory = _.find(advisories, _.matchesProperty('name',match.AdvisoryName));
                                     if (!foundAdvisory) {
@@ -168,9 +166,9 @@ let checkEmail = (results, header) => {
                             })
                         }
 
-                        console.log('Advisory Traps: ', advisoryTraps.length);
-                        console.log('LIST OF EMAILS ARE: ', listOfEmails.length);
-                        console.log('EMAILS TO REMOVED: ', emailsToRemoved.length);
+                        log.info('Advisory Traps: ', advisoryTraps.length);
+                        log.info('LIST OF EMAILS ARE: ', listOfEmails.length);
+                        log.info('EMAILS TO REMOVED: ', emailsToRemoved.length);
 
                         _.remove(listOfEmails, function (email) {
                             if (_.includes(failedMX, email.split('@')[1])) {
@@ -181,10 +179,10 @@ let checkEmail = (results, header) => {
                                 return false;
                             }
                         });
-                        console.log('MX STANDARD FAILED: ', mxStandardFailed.length);
+                        log.info('MX STANDARD FAILED: ', mxStandardFailed.length);
                         emailsToRemoved = _.concat(emailsToRemoved, mxStandardFailed);
-                        console.log('Now emailsToRemoved: ', emailsToRemoved.length);
-                        console.log('listOfEmails now: ', listOfEmails.length);
+                        log.info('Now emailsToRemoved: ', emailsToRemoved.length);
+                        log.info('listOfEmails now: ', listOfEmails.length);
 
                         emailsToRemoved.forEach(function (email) {
                             if (headerInfo.containsHeader) {
@@ -221,16 +219,14 @@ let checkEmail = (results, header) => {
                     return results;
                 })
                 .catch((e) => {
-                    console.log('ERROR CATCHED IN MX Standard NESTED 2!');
-                    console.log(e);
+                    log.error('ERROR CATCHED IN MX Standard NESTED 2! ', e);
                     throw e;
                 });
 
 
         })
         .catch((e) => {
-            console.log('ERROR CATCHED IN MX Standard NESTED 1!');
-            console.log(e);
+            log.error('ERROR CATCHED IN MX Standard NESTED 1! ', e);
             throw e;
         });
 };

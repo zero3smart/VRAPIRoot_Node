@@ -8,6 +8,7 @@ const app = require('../app');
 const debug = require('debug')('VRRoot:server');
 const http = require('http');
 const helper = require('../helper');
+const log = helper.log;
 const commonHelper = helper.common;
 const redis = helper.redis;
 const dnsCacheRedis = helper.dnsCacheRedis;
@@ -23,7 +24,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+let server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -36,15 +37,15 @@ helper.database.initialize()
     .then( () => {
       commonHelper.setDNSServers()
           .then(() => {
-            console.log('initializing redis');
+            log.info('initializing redis');
             return redis.initialize();
           })
           .then(() => {
-            console.log('initializing dnsCacheRedis');
+            log.info('initializing dnsCacheRedis');
             return dnsCacheRedis.initialize();
           })
           .then( () => {
-            console.log('starting server');
+            log.info('starting server');
             server.listen(port);
           });
     });
@@ -53,7 +54,7 @@ helper.database.initialize()
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  let port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -77,18 +78,18 @@ function onError(error) {
     throw error;
   }
 
-  var bind = typeof port === 'string'
+  let bind = typeof port === 'string'
     ? 'Pipe ' + port
     : 'Port ' + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      log.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      log.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -96,20 +97,14 @@ function onError(error) {
   }
 }
 
-process.on('uncaughtException', function (err) {
-  console.error((new Date).toUTCString() + ' uncaughtException:', err.message)
-  console.error(err.stack)
-  process.exit(1);
-})
-
 /**
  * Event listener for HTTP server "listening" event.
  */
 
 function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
+  let addr = server.address();
+  let bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  console.log('Listening on ' + bind);
+  log.info('Listening on ' + bind);
 }

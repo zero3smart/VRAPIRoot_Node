@@ -12,6 +12,7 @@ const zipHelper = promise.promisifyAll(require('./zip'));
 const JSFtp = require("jsftp");
 const commonHelper = require('./common');
 const babyparse = require('babyparse');
+const log = require('./log');
 
 let ensureDirectoryExists = (directory) => {
     return new promise(function (resolve, reject) {
@@ -90,23 +91,21 @@ let getFTPFiles = (dirInfo) => {
                     error: 'File is not compatible for processing!'
                 };
             }
-            console.log('Ensuring the directory existence: ', localDirectory);
+            log.info('Ensuring the directory existence: ', localDirectory);
             return ensureDirectoryExists(localDirectory)
                 .then(() => {
-                    console.log('Directory existence confirmed.');
+                    log.info('Directory existence confirmed.');
                     return ftp.getAsync(remoteFile, localFile)
                         .then( () => {
-                            console.log('File fetched completed.')
+                            log.info('File fetched completed.');
                             return prepareFiles(localDirectory);
                         }).catch((e) => {
-                            console.log('ERROR CATCHED IN ensure directory exist!');
-                            console.log(e);
+                            log.error('ERROR CATCHED IN ensure directory exist!', e);
                             throw e;
                         })
                 })
                 .catch((e) => {
-                    console.log('ERROR CATCHED ON ensure directory exist!');
-                    console.log(e);
+                    log.error('ERROR CATCHED ON ensure directory exist!', e);
                     if(e.code && e.code === 550) {
                         return {
                             error: e.message
@@ -119,8 +118,7 @@ let getFTPFiles = (dirInfo) => {
 
         })
         .catch((e) => {
-            console.log('ERROR CATCHED IN getUserFTPConfiguration call!');
-            console.log(e);
+            log.error('ERROR CATCHED IN getUserFTPConfiguration call!', e);
             throw e;
         })
 };
@@ -130,7 +128,7 @@ let saveZipToFTP = (report) => {
 
     return commonHelper.getUserFTPConfiguration(report.userName)
         .then((ftpConfig) => {
-            console.log('writing the zip to ftp');
+            log.info('writing the zip to ftp');
             ftp = new JSFtp({
                 host: ftpConfig.HostName,
                 port: ftpConfig.port || 21,
@@ -145,18 +143,15 @@ let saveZipToFTP = (report) => {
 
             return ftp.putAsync(localFile, remoteFile)
                 .catch((e) => {
-                    console.log('ERROR CATCHED IN File putAsync!');
-                    console.log(e);
+                    log.error('ERROR CATCHED IN File putAsync!', e);
                     throw e;
                 });
-
         })
         .then( () => {
             return report;
         })
         .catch((e) => {
-            console.log('ERROR CATCHED IN REPORT!');
-            console.log(e);
+            log.error('ERROR CATCHED IN REPORT!', e);
             throw e;
         });
 

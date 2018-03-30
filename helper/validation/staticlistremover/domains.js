@@ -6,8 +6,8 @@ const _ = require('lodash');
 const promise = require('bluebird');
 const config = require('../../../config');
 const globalSettings = config.global;
-const settings = config.settings;
 const commonHelper = require('../../common');
+const log = require('../../log');
 
 let remove = (results, header, scrubOptions) => {
 
@@ -29,7 +29,7 @@ let remove = (results, header, scrubOptions) => {
             return;
         }
         if (containsHeader) {
-            for (var key in result.data[0]) {
+            for (let key in result.data[0]) {
                 if (_.includes(globalSettings.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
@@ -68,12 +68,12 @@ let remove = (results, header, scrubOptions) => {
                                     reject(err);
                                 }
                                 else {
-                                    console.log('Retreived ', recordsInCollection.length, ' records from ', collection);
-                                    var matchedRecords = _.chain(recordsInCollection)
+                                    log.info('Retreived ', recordsInCollection.length, ' records from ', collection);
+                                    let matchedRecords = _.chain(recordsInCollection)
                                         .compact()
                                         .map(function (record, i) {
                                             if (!record.domain) {
-                                                console.log('Found a domain with problem at ', i, ' : ', record);
+                                                log.info('Found a domain with problem at ', i, ' : ', record);
                                                 return null;
                                             }
                                             return record.domain.toString().toLowerCase();
@@ -82,7 +82,7 @@ let remove = (results, header, scrubOptions) => {
                                         .value();
 
                                     //TODO: nedd to do a _.difference to update the result.data
-                                    console.log('Got matchedRecords for collection in Static domain comparison: ' + collection + ' : ' + matchedRecords.length);
+                                    log.info('Got matchedRecords for collection in Static domain comparison: ' + collection + ' : ' + matchedRecords.length);
                                     resolve({matchedRecords: matchedRecords, collection: collection});
                                 }
                             });
@@ -115,13 +115,13 @@ let remove = (results, header, scrubOptions) => {
                                 }
                             );
 
-                            console.log('Found ', emailsToRemove.length, ' emails to remove while matching with : ', queryResult.collection);
-                            console.log('Before comparing with ', queryResult.collection, ' total records were: ', result.data.length);
+                            log.info('Found ', emailsToRemove.length, ' emails to remove while matching with : ', queryResult.collection);
+                            log.info('Before comparing with ', queryResult.collection, ' total records were: ', result.data.length);
                             result.data = _.difference(result.data, emailsToRemove);
-                            console.log('After comparing with ', queryResult.collection, ' total records are: ', result.data.length);
+                            log.info('After comparing with ', queryResult.collection, ' total records are: ', result.data.length);
 
                             listOfDomains = _.difference(listOfDomains, queryResult.matchedRecords);
-                            console.log('For ', queryResult.collection, ' comparison and clean is done. returning now.');
+                            log.info('For ', queryResult.collection, ' comparison and clean is done. returning now.');
                             return;
                         })
                 }, { concurrency: 1});
@@ -129,8 +129,7 @@ let remove = (results, header, scrubOptions) => {
             })
             .then(()=> result)
             .catch((e) => {
-                console.log('ERROR CATCHED IN DOMAINS!');
-                console.log(e);
+                log.error('ERROR CATCHED IN DOMAINS! ', e);
                 throw e;
             });
     });

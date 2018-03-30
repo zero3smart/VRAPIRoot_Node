@@ -6,9 +6,9 @@ const _ = require('lodash');
 const promise = require('bluebird');
 const config = require('../../../config');
 const globalSettings = require('../../../config/global');
-const settings = config.settings;
 const collection = 'static_list_badwords';
 const commonHelper = require('../../common');
+const log = require('../../log');
 
 let remove = (results, header, scrubOptions) => {
 
@@ -29,7 +29,7 @@ let remove = (results, header, scrubOptions) => {
         }
 
         if (containsHeader) {
-            for (var key in result.data[0]) {
+            for (let key in result.data[0]) {
                 if (_.includes(globalSettings.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
@@ -56,7 +56,7 @@ let remove = (results, header, scrubOptions) => {
                                 }
                                 else {
                                     emailsToRemoved = [];
-                                    console.log('WORD: Retreived ', words.length, ' records from ', collection);
+                                    log.info('WORD: Retreived ', words.length, ' records from ', collection);
                                     if (words.length) {
                                         words = _.map(words, 'word');
                                         words.forEach(function (word) {
@@ -91,16 +91,14 @@ let remove = (results, header, scrubOptions) => {
                             });
                     })
                         .catch((e) => {
-                            console.log('ERROR CATCHED IN WORDS NESTED 2!');
-                            console.log(e);
+                            log.error('ERROR CATCHED IN WORDS NESTED 2! ', e);
                             throw e;
                         });
                 }, {concurrency: 1});
 
             })
             .catch((e) => {
-                console.log('ERROR CATCHED IN WORDS NESTED 1!');
-                console.log(e);
+                log.error('ERROR CATCHED IN WORDS NESTED 1! ', e);
                 throw e;
             });
 
@@ -108,7 +106,7 @@ let remove = (results, header, scrubOptions) => {
     })
         .then(() => results)
         .catch((e) => {
-            console.log('ERROR CATCHED IN WORDS!');
+            log.error('ERROR CATCHED IN WORDS! ', e);
             console.log(e);
             throw e;
         });

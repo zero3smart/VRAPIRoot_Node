@@ -8,13 +8,14 @@ const csvHandler = require('./validation/csv');
 const xlxHandler = require('./validation/xlx');
 const config = require('../config');
 const dns = require('dns');
+const log = require('./log');
 
 let getEmailParts = (email) => {
 
-    //var match = /(.*)@+([^.]*\.{1}\w+)((\.{1}\w+))*/g.exec(email);
-    var match = /(.*)@+([^.]*\.{1}[^\..]*)((\.{1}[^\..]*))*/g.exec(email);
+    //let match = /(.*)@+([^.]*\.{1}\w+)((\.{1}\w+))*/g.exec(email);
+    let match = /(.*)@+([^.]*\.{1}[^\..]*)((\.{1}[^\..]*))*/g.exec(email);
     if (_.isNil(match)) {
-        console.log('problem in breaking the email into parts: ' + email);
+        log.info('problem in breaking the email into parts: ' + email);
         return {
             user: null,
             domain: null,
@@ -100,7 +101,7 @@ let getHeaderInfo = (result, header) => {
         containsHeader = true;
     }
     if (containsHeader) {
-        for (var key in result.data[0]) {
+        for (let key in result.data[0]) {
             if (_.includes(global.emailKeyNames, key.toLowerCase())) {
                 emailColumnHeader = key;
                 break;
@@ -129,7 +130,7 @@ let getFileExtension = (fileName) => {
 
 let geFileHandler = (fileExtension) => {
 
-    var handler = null;
+    let handler = null;
 
     switch (fileExtension) {
         case 'txt':
@@ -157,7 +158,7 @@ let isFileCompatible = (fileName) => {
 let setDNSServers = () => {
     return getDNSServers().then((servers) => {
         dns.setServers(servers);
-        console.log('dnsServers found: ', servers.length);
+        log.info('dnsServers found: ', servers.length);
         return;
     });
 };

@@ -7,13 +7,14 @@ const syntaxValidation = require('./syntax');
 const staticRemover = require('./staticlistremover/index');
 const commonHelper = require('../common');
 const settings = require('../../config/settings');
+const log = require('../log');
 
 let startValidation = (directory, files, header, scrubOptions) => {
     return promise.map(files, function (file) {
-        console.log('readFileAndRemoveDuplicates');
+        log.info('readFileAndRemoveDuplicates');
         return readFileAndRemoveDuplicates(directory, file, header, scrubOptions);
     }).then((result) => {
-        console.log('staticRemover.start');
+        log.info('staticRemover.start');
         return staticRemover.start(result, header, scrubOptions);
     });
 };

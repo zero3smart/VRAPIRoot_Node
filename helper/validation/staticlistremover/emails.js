@@ -8,6 +8,7 @@ const config = require('../../../config');
 const globalSettings = config.global;
 const settings = config.settings;
 const commonHelper = require('../../common');
+const log = require('../../log');
 
 let remove = (results, header, scrubOptions) => {
 
@@ -28,7 +29,7 @@ let remove = (results, header, scrubOptions) => {
             return;
         }
         if (containsHeader) {
-            for (var key in result.data[0]) {
+            for (let key in result.data[0]) {
                 if (_.includes(globalSettings.emailKeyNames, key.toLowerCase())) {
                     emailColumnHeader = key;
                     break;
@@ -54,9 +55,9 @@ let remove = (results, header, scrubOptions) => {
                         return;
                     }
 
-                    var emailChunks = _.chunk(listOfEmails, 1000);
-                    var matchedRecords = [];
-                    console.log('total chunks: ', emailChunks.length);
+                    let emailChunks = _.chunk(listOfEmails, 1000);
+                    let matchedRecords = [];
+                    log.info('total chunks: ', emailChunks.length);
 
                     return promise.map(emailChunks, function (emailChunk) {
                         return new promise(function (resolve, reject) {
@@ -70,7 +71,7 @@ let remove = (results, header, scrubOptions) => {
                                         reject(err)
                                     }
                                     else {
-                                        console.log('Retreived ', matchedOnes.length, ' records from ', collection);
+                                        log.info('Retreived ', matchedOnes.length, ' records from ', collection);
                                         if (matchedOnes.length) {
                                             matchedRecords = _.concat(matchedRecords, _.map(matchedOnes, 'email'));
                                         }
@@ -78,8 +79,7 @@ let remove = (results, header, scrubOptions) => {
                                     }
                                 });
                         }).catch((e) => {
-                            console.log('ERROR CATCHED IN EMAILS NESTED 2!');
-                            console.log(e);
+                            log.error('ERROR CATCHED IN EMAILS NESTED 2! ', e);
                             throw e;
                         });
                     }, {concurrency: settings.concurrency})
@@ -99,8 +99,7 @@ let remove = (results, header, scrubOptions) => {
                             return;
                         })
                         .catch((e) => {
-                            console.log('ERROR CATCHED IN EMAILS NESTED 1!');
-                            console.log(e);
+                            log.error('ERROR CATCHED IN EMAILS NESTED 1! ', e);
                             throw e;
                         });
                 }, {concurrency: 1});
@@ -124,8 +123,7 @@ let remove = (results, header, scrubOptions) => {
             })
             .then(()=> result)
             .catch((e) => {
-                console.log('ERROR CATCHED IN EMAILS!');
-                console.log(e);
+                log.error('ERROR CATCHED IN EMAILS! ', e);
                 throw e;
             });
     });

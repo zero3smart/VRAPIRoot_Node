@@ -5,9 +5,9 @@ const commonHelper = require('../common');
 const _ = require('lodash');
 const promise = require('bluebird');
 const dnsCacheRedisHelper = require('../dnsCacheRedis');
-const dnsCache = dnsCacheRedisHelper.dnsCache;
 const dns = require('dns');
 const settings = require('../../config/settings');
+const log = require('../log');
 
 let checkEmail = (results, header) => {
 
@@ -17,11 +17,11 @@ let checkEmail = (results, header) => {
     let failedDomains = [];
     let dnsServers = dns.getServers();
 
-    console.log('Found ', dnsServers.length, ' DNS Servers');
+    log.info('Found ', dnsServers.length, ' DNS Servers');
 
     return commonHelper.getWhiteListedDomains()
         .then((whiteListedDomains) => {
-            console.log('whitelisteddomains: ', whiteListedDomains.length);
+            log.info('whitelisteddomains: ', whiteListedDomains.length);
             return promise.map(results, (result) => {
                 if (!result || !result.data.length) {
                     return;
@@ -39,15 +39,15 @@ let checkEmail = (results, header) => {
                     .uniq()
                     .difference(whiteListedDomains).value();
 
-                console.log('need mx check for : ' + domainsList.length + ' domain');
-                var checkedMx = 0;
+                log.info('need mx check for : ' + domainsList.length + ' domain');
+                let checkedMx = 0;
                 return promise.map(domainsList, (domain, index) => {
                     if (!domain) {
                         return;
                     }
                     ++checkedMx;
                     if (checkedMx % 1000 === 0) {
-                        console.log(checkedMx / 1000 + 'K MX checked.')
+                        log.info(checkedMx / 1000 + 'K MX checked.')
                     }
                     return dnsCacheRedisHelper.dnsCache.resolveMxAsync(domain.toString())
                         .then((addresses) => {
@@ -62,25 +62,24 @@ let checkEmail = (results, header) => {
                                         failedDomains.push(e.hostname);
                                         break;
                                     case 'ETIMEOUT':
-                                        console.log('timeout mx check for : ', domain);
+                                        log.info('timeout mx check for : ', domain);
                                         break;
                                     default:
-                                        console.log(e.code, ': error for mx check for : ', domain);
+                                        log.info(e.code, ': error for mx check for : ', domain);
                                 }
                             }
                             else {
-                                console.log('ERROR CATCHED IN MX NESTED 3!');
-                                console.log(e);
+                                log.error('ERROR CATCHED IN MX NESTED 3! ', e);
                                 throw e;
                             }
                         });
 
                 }, {concurrency: dnsServers.length})
                     .then(()=> {
-                        var emailsToRemoved = [];
+                        let emailsToRemoved = [];
                         result.report.saveReports = result.report.saveReports || [];
 
-                        console.log('MX failed number of domains: ', failedDomains.length);
+                        log.info('MX failed number of domains: ', failedDomains.length);
                         if (failedDomains.length) {
                             _.remove(listOfEmails, function (email) {
                                 if (_.includes(failedDomains, email.split('@')[1])) {
@@ -107,7 +106,7 @@ let checkEmail = (results, header) => {
                             });
 
                         }
-                        console.log('Number of emails found which were in MX failed: ', emailsToRemoved.length);
+                        log.info('Number of emails found which were in MX failed: ', emailsToRemoved.length);
                         result.report.saveReports.push(
                             {
                                 reportName: commonHelper.getReportName('mxOnly'),
@@ -116,24 +115,21 @@ let checkEmail = (results, header) => {
                         );
                     })
                     .catch((e) => {
-                        console.log('ERROR CATCHED IN MX NESTED 2!');
-                        console.log(e);
+                        log.error('ERROR CATCHED IN MX NESTED 2! ', e);
                         throw e;
                     });
 
 
             })
                 .catch((e) => {
-                    console.log('ERROR CATCHED IN MX NESTED 1!');
-                    console.log(e);
+                    log.error('ERROR CATCHED IN MX NESTED 1! ', e);
                     throw e;
                 });
 
         })
         .then(()=> results)
         .catch((e) => {
-            console.log('ERROR CATCHED IN MX!');
-            console.log(e);
+            log.error('ERROR CATCHED IN MX! ', e);
             throw e;
         });
 };

@@ -6,25 +6,26 @@ const staticListDomainsRemover = require('./domains');
 const staticListEndingsRemover = require('./endings');
 const staticListBadWords = require('./words');
 const staticListRoles = require('./role');
+const log = require('../../log');
 
 
 let start = (result, header, scrubOptions) => {
-    console.log('starting with staticListEmailsRemover...');
+    log.info('starting with staticListEmailsRemover...');
     return staticListEmailsRemover.remove (result, header, scrubOptions)
         .then((result) => {
-            console.log('starting with staticListDomainsRemover...');
+            log.info('starting with staticListDomainsRemover...');
             return staticListDomainsRemover.remove(result, header, scrubOptions);
         })
         .then((result) => {
-            console.log('starting with staticListEndingsRemover...');
+            log.info('starting with staticListEndingsRemover...');
             return staticListEndingsRemover.remove(result, header, scrubOptions);
         })
         .then((result) => {
-            console.log('starting with staticListBadWords...');
+            log.info('starting with staticListBadWords...');
             return staticListBadWords.remove(result, header, scrubOptions);
         })
         .then((result) => {
-            console.log('starting with staticListRoles...');
+            log.info('starting with staticListRoles...');
             return staticListRoles.remove(result, header, scrubOptions);
         });
 };

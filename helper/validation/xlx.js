@@ -8,6 +8,7 @@ const _ = require('lodash');
 const parse = require('csv-parse');
 const babyparse = require('babyparse');
 const XLSX = promise.promisifyAll(require('xlsx'));
+const log = require('../log');
 
 let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
     return new promise((resolve, reject) => {
@@ -16,7 +17,7 @@ let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
         let parseData = null;
 
         try {
-            console.log('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
+            log.info('MEMORY USE BEFORE FILE READ: ', process.memoryUsage());
             workbook = XLSX.readFile(filePath, {sheetRows: 0});
         }
         catch (e) {
@@ -26,10 +27,10 @@ let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
             containsHeader = true;
         }
 
-        console.log('MEMORY USE: ', process.memoryUsage());
+        log.info('MEMORY USE: ', process.memoryUsage());
 
         if (containsHeader) {
-            var jsonData = [];
+            let jsonData = [];
 
             _.each(workbook.Sheets, function (value, key) {
                 jsonData = _.concat(jsonData, XLSX.utils.sheet_to_json(workbook.Sheets[key]))
@@ -44,7 +45,7 @@ let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
             });
         }
         else {
-            var csvData = [];
+            let csvData = [];
 
             _.each(workbook.Sheets, function (value, key) {
                 babyparse.parse(XLSX.utils.sheet_to_csv(workbook.Sheets[key]), {
@@ -57,7 +58,7 @@ let readFromFileAndRemoveDupes = (filePath, header, scrubOptions) => {
 
             parseData = csvData[0];
 
-            for (var i = 1; i < csvData.length; i++) {
+            for (let i = 1; i < csvData.length; i++) {
                 if (csvData[i].data) {
                     parseData.data = _.concat(parseData.data, csvData[i].data);
                 }
@@ -87,7 +88,7 @@ let save = (resultData, filePath, fileName, header) => {
         if (_.isObject(header) && header.header === true) {
             data = [];
 
-            for (var key in resultData[0]) {
+            for (let key in resultData[0]) {
                 temp.push(key);
             }
 
@@ -95,7 +96,7 @@ let save = (resultData, filePath, fileName, header) => {
 
             resultData.forEach(function (d) {
                 temp = [];
-                for (var key in d) {
+                for (let key in d) {
                     temp.push(d[key]);
                 }
                 data.push(temp);
@@ -104,9 +105,9 @@ let save = (resultData, filePath, fileName, header) => {
         else {
             data = resultData;
         }
-        var wb = new Workbook();
-        var ws = sheet_from_array_of_arrays(data);
-        var ws_name = "CleanSheet";
+        let wb = new Workbook();
+        let ws = sheet_from_array_of_arrays(data);
+        let ws_name = "CleanSheet";
 
         wb.SheetNames.push(ws_name);
         wb.Sheets[ws_name] = ws;
@@ -125,22 +126,22 @@ module.exports = {
 
 function datenum(v, date1904) {
     if (date1904) v += 1462;
-    var epoch = Date.parse(v);
+    let epoch = Date.parse(v);
     return (epoch - new Date(Date.UTC(1899, 11, 30))) / (24 * 60 * 60 * 1000);
 }
 
 function sheet_from_array_of_arrays(data, opts) {
-    var ws = {};
-    var range = {s: {c: 10000000, r: 10000000}, e: {c: 0, r: 0}};
-    for (var R = 0; R != data.length; ++R) {
-        for (var C = 0; C != data[R].length; ++C) {
+    let ws = {};
+    let range = {s: {c: 10000000, r: 10000000}, e: {c: 0, r: 0}};
+    for (let R = 0; R != data.length; ++R) {
+        for (let C = 0; C != data[R].length; ++C) {
             if (range.s.r > R) range.s.r = R;
             if (range.s.c > C) range.s.c = C;
             if (range.e.r < R) range.e.r = R;
             if (range.e.c < C) range.e.c = C;
-            var cell = {v: data[R][C]};
+            let cell = {v: data[R][C]};
             if (cell.v == null) continue;
-            var cell_ref = XLSX.utils.encode_cell({c: C, r: R});
+            let cell_ref = XLSX.utils.encode_cell({c: C, r: R});
 
             if (typeof cell.v === 'number') cell.t = 'n';
             else if (typeof cell.v === 'boolean') cell.t = 'b';

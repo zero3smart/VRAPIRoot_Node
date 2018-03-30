@@ -15,6 +15,7 @@ const statusHelper = require('./status');
 const apiHelper = require('./api');
 const redisHelper = require('./redis');
 const dnsCacheRedisHelper = require('./dnsCacheRedis');
+const log = require('./log');
 
 module.exports = {
     response: responseHelper,
@@ -30,5 +31,6 @@ module.exports = {
     status: statusHelper,
     api: apiHelper,
     redis: redisHelper,
-    dnsCacheRedis: dnsCacheRedisHelper
+    dnsCacheRedis: dnsCacheRedisHelper,
+    log: log
 };

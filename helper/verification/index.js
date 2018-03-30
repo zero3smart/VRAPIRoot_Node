@@ -5,6 +5,7 @@
 const mxOnlyHandler = require('./mxOnly');
 const mxStandardHandler = require('./mxStandard');
 const promise = require('bluebird');
+const log = require('../log');
 
 let start = (results, header, scrubOptions) => {
     return new promise(function (resolve, reject) {
@@ -22,7 +23,7 @@ let start = (results, header, scrubOptions) => {
 let startMXOnly = (results, header, scrubOptions) => {
 
     if (scrubOptions.mxOnly) {
-        console.log('starting with mxOnlyHandler.checkEmail...');
+        log.info('starting with mxOnlyHandler.checkEmail...');
         return mxOnlyHandler.checkEmail(results, header);
     }
     else {
@@ -32,7 +33,7 @@ let startMXOnly = (results, header, scrubOptions) => {
 
 let startMXStandard = (results, header, scrubOptions) => {
     if (scrubOptions.mxStandard) {
-        console.log('starting with mxStandardHandler.checkEmail...');
+        log.info('starting with mxStandardHandler.checkEmail...');
         return mxStandardHandler.checkEmail(results, header);
     }
     else {

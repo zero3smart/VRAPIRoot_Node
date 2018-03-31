@@ -23,7 +23,7 @@ let start = (results, header, scrubOptions) => {
 let startMXOnly = (results, header, scrubOptions) => {
 
     if (scrubOptions.mxOnly) {
-        log.info('starting with mxOnlyHandler.checkEmail...');
+        log.info('# Starting with mxOnlyHandler.checkEmail...');
         return mxOnlyHandler.checkEmail(results, header);
     }
     else {
@@ -33,7 +33,7 @@ let startMXOnly = (results, header, scrubOptions) => {
 
 let startMXStandard = (results, header, scrubOptions) => {
     if (scrubOptions.mxStandard) {
-        log.info('starting with mxStandardHandler.checkEmail...');
+        log.info('# Starting with mxStandardHandler.checkEmail...');
         return mxStandardHandler.checkEmail(results, header);
     }
     else {

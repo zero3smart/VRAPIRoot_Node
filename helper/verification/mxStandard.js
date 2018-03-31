@@ -122,36 +122,37 @@ let checkEmail = (results, header) => {
                             });
                         }, {concurrency: settings.concurrency})
                     })
-                    .then(()=> {
+                    .then(() => {
                         let emailsToRemoved = [];
                         let advisories = [];
                         let advisoryTraps = [];
                         let mxStandardFailed = [];
                         let match;
                         let foundAdvisory;
+                        let removed = [];
 
                         result.report.saveReports = result.report.saveReports || [];
                         log.info('MX Standard failed number of domains: ', matchedRecords.length);
                         log.info('MX Standard failed A Records: ', failedMX.length);
-                        log.info('Sample Matched Data: ');
                         log.info('Lookup collection length: ', lookupCollection.length);
-
                         log.info('LIST OF EMAILS WERE: ', listOfEmails.length);
+
                         if (lookupCollection.length) {
+                            log.info('Starting with matching and removing against the advisory');
                             _.each(lookupCollection, function (lookup) {
                                 match = _.find(matchedRecords, {'IPAddress': lookup.IPAddress});
                                 if (match) {
-                                    foundAdvisory = _.find(advisories, _.matchesProperty('name',match.AdvisoryName));
+                                    foundAdvisory = _.find(advisories, _.matchesProperty('name', match.AdvisoryName));
                                     if (!foundAdvisory) {
                                         advisories.push({
-                                            name: match .AdvisoryName,
+                                            name: match.AdvisoryName,
                                             value: 1
                                         });
                                     }
                                     else {
                                         ++foundAdvisory.value;
                                     }
-                                    _.remove(listOfEmails, function (email) {
+                                    removed = _.remove(listOfEmails, function (email) {
                                         if (email.split('@')[1] == lookup.AdvisoryName) {
                                             advisoryTraps.push([email, match.AdvisoryName]);
                                             emailsToRemoved.push(email);
@@ -161,7 +162,8 @@ let checkEmail = (results, header) => {
                                             return false;
                                         }
                                     });
-
+                                    log.info('Removed: ', removed.length);
+                                    removed = [];
                                 }
                             })
                         }
@@ -216,6 +218,7 @@ let checkEmail = (results, header) => {
                     });
             })
                 .then(() => {
+                    log.info('MX Standard check completed.')
                     return results;
                 })
                 .catch((e) => {

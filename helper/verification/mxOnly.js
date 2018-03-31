@@ -107,6 +107,7 @@ let checkEmail = (results, header) => {
 
                         }
                         log.info('Number of emails found which were in MX failed: ', emailsToRemoved.length);
+                        log.info('MXOnly checked completed');
                         result.report.saveReports.push(
                             {
                                 reportName: commonHelper.getReportName('mxOnly'),

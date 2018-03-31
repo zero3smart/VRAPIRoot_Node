@@ -128,7 +128,7 @@ let checkEmail = (results, header) => {
                         let advisoryTraps = [];
                         let mxStandardFailed = [];
                         let match;
-                        let foundAdvisory;
+                        let foundAdvisory = false;
                         let removed = [];
 
                         result.report.saveReports = result.report.saveReports || [];
@@ -137,67 +137,59 @@ let checkEmail = (results, header) => {
                         log.info('Lookup collection length: ', lookupCollection.length);
                         log.info('LIST OF EMAILS WERE: ', listOfEmails.length);
 
+
                         if (lookupCollection.length) {
                             log.info('Starting with matching and removing against the advisory');
                             _.each(lookupCollection, function (lookup) {
-                                match = _.find(matchedRecords, {'IPAddress': lookup.IPAddress});
-                                if (match) {
-                                    foundAdvisory = _.find(advisories, _.matchesProperty('name', match.AdvisoryName));
-                                    if (!foundAdvisory) {
-                                        advisories.push({
-                                            name: match.AdvisoryName,
-                                            value: 1
-                                        });
-                                    }
-                                    else {
-                                        ++foundAdvisory.value;
-                                    }
-                                    removed = _.remove(listOfEmails, function (email) {
-                                        if (email.split('@')[1] == lookup.AdvisoryName) {
-                                            advisoryTraps.push([email, match.AdvisoryName]);
-                                            emailsToRemoved.push(email);
-                                            return true;
+                                _.each(matchedRecords, function (matchedRecord) {
+                                    if (matchedRecord.IPAddress === lookup.IPAddress) {
+                                        matchedRecord.lookupAdvisoryName = lookup.AdvisoryName;
+                                        foundAdvisory = _.find(advisories, _.matchesProperty('name', matchedRecord.AdvisoryName));
+                                        if (!foundAdvisory) {
+                                            advisories.push({
+                                                name: matchedRecord.AdvisoryName,
+                                                value: 1
+                                            });
                                         }
                                         else {
-                                            return false;
+                                            ++foundAdvisory.value;
                                         }
-                                    });
-                                    log.info('Removed: ', removed.length);
-                                    removed = [];
+                                    }
+                                });
+                            });
+                            log.info('Advisory Traps: ', advisoryTraps.length);
+                            _.each(listOfEmails, function (email) {
+                                _.each(matchedRecords, function (matchedRecord) {
+                                    if (email.split('@')[1] == matchedRecord.lookupAdvisoryName) {
+                                        advisoryTraps.push([email, matchedRecord.AdvisoryName]);
+                                        emailsToRemoved.push(email);
+                                    }
+                                });
+                            });
+                            log.info('EMAILS TO REMOVED: ', emailsToRemoved.length);
+                            listOfEmails = _.difference(listOfEmails, emailsToRemoved);
+                            _.each(listOfEmails, function (email) {
+                                if (_.includes(failedMX, email.split('@')[1])) {
+                                    mxStandardFailed.push(email);
                                 }
-                            })
+                            });
+                            log.info('MX STANDARD FAILED: ', mxStandardFailed.length);
+                            listOfEmails = _.difference(listOfEmails, mxStandardFailed);
+                            log.info('After clearing the list length: ', listOfEmails.length);
                         }
-
-                        log.info('Advisory Traps: ', advisoryTraps.length);
                         log.info('LIST OF EMAILS ARE: ', listOfEmails.length);
-                        log.info('EMAILS TO REMOVED: ', emailsToRemoved.length);
 
-                        _.remove(listOfEmails, function (email) {
-                            if (_.includes(failedMX, email.split('@')[1])) {
-                                mxStandardFailed.push(email);
-                                return true;
-                            }
-                            else {
-                                return false;
-                            }
-                        });
-                        log.info('MX STANDARD FAILED: ', mxStandardFailed.length);
                         emailsToRemoved = _.concat(emailsToRemoved, mxStandardFailed);
+
                         log.info('Now emailsToRemoved: ', emailsToRemoved.length);
-                        log.info('listOfEmails now: ', listOfEmails.length);
+                        log.info('cleaning from the original list');
+
+                        let prop = headerInfo.containsHeader ? headerInfo.emailColumnHeader : headerInfo.emailIndex;
 
                         emailsToRemoved.forEach(function (email) {
-                            if (headerInfo.containsHeader) {
-                                _.remove(result.data, function (d) {
-                                    return d[headerInfo.emailColumnHeader] === email;
-                                });
-                            }
-                            else {
-                                _.remove(result.data, function (d) {
-                                    return d[headerInfo.emailIndex] === email;
-                                });
-                            }
-
+                            _.remove(result.data, function (d) {
+                                return d[prop] === email;
+                            });
                         });
 
                         result.report.saveReports.push(
@@ -215,6 +207,7 @@ let checkEmail = (results, header) => {
                                 data: mxStandardFailed
                             }
                         );
+                        log.info('done');
                     });
             })
                 .then(() => {

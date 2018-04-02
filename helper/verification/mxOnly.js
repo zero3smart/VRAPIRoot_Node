@@ -74,7 +74,7 @@ let checkEmail = (results, header) => {
                             }
                         });
 
-                }, {concurrency: dnsServers.length})
+                }, {concurrency: 4})
                     .then(()=> {
                         let emailsToRemoved = [];
                         result.report.saveReports = result.report.saveReports || [];

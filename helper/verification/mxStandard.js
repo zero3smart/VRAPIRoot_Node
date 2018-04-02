@@ -87,7 +87,7 @@ let checkEmail = (results, header) => {
                         });
 
                 }, {
-                    concurrency: dnsServers.length
+                    concurrency: 4
                 })
                     .then(() => {
                         if (!lookupCollection) {

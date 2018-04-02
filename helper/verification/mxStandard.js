@@ -174,7 +174,7 @@ let checkEmail = (results, header) => {
                                 });
 
                                 if(matched && removedCount%1000 === 0) {
-                                    console.log('Advisory matched and removed: ', removedCount);
+                                    log.info('Advisory matched and removed: ', removedCount);
                                 }
                                 return matched;
                             });

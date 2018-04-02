@@ -206,7 +206,7 @@ let checkEmail = (results, header) => {
                             removedCount = 0;
                             _.remove(result.data, function (d) {
                                 if (_.includes(failedMX, d[prop].split('@')[1])) {
-                                    mxStandardFailed.push(email);
+                                    mxStandardFailed.push(d[prop]);
                                     ++removedCount;
                                     return true;
                                 }

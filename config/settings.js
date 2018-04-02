@@ -46,5 +46,5 @@ module.exports = {
         completion: 'completion',
         error: 'error'
     },
-    concurrency: 5
+    concurrency: 1
 };

@@ -175,7 +175,6 @@ let checkEmail = (results, header) => {
 
                                 if(foundInAlreadyCheckedList) {
                                     advisoryTraps.push([email, foundInAlreadyCheckedList.AdvisoryName]);
-                                    log.info('Found in already checked list: ', domain);
                                     match = true;
                                     ++removedCount;
                                 }
@@ -207,6 +206,7 @@ let checkEmail = (results, header) => {
                             removedCount = 0;
                             _.remove(result.data, function (d) {
                                 if (_.includes(failedMX, d[prop].split('@')[1])) {
+                                    mxStandardFailed.push(email);
                                     ++removedCount;
                                     return true;
                                 }
@@ -214,6 +214,7 @@ let checkEmail = (results, header) => {
                                     return false;
                                 }
                             });
+
                             log.info('Removed count: ', removedCount);
                             log.info('LIST OF EMAILS ARE: ', result.data.length);
                         }

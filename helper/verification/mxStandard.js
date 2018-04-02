@@ -135,8 +135,8 @@ let checkEmail = (results, header) => {
                         log.info('MX Standard failed number of domains: ', matchedRecords.length);
                         log.info('MX Standard failed A Records: ', failedMX.length);
                         log.info('Lookup collection length: ', lookupCollection.length);
-                        log.info('LIST OF EMAILS WERE: ', listOfEmails.length);
-
+                        log.info('LIST OF EMAILS WERE: ', result.data.length);
+                        let prop = headerInfo.containsHeader ? headerInfo.emailColumnHeader : headerInfo.emailIndex;
 
                         if (lookupCollection.length) {
                             log.info('Starting with matching and removing against the advisory');
@@ -157,40 +157,45 @@ let checkEmail = (results, header) => {
                                     }
                                 });
                             });
-                            log.info('Advisory Traps: ', advisoryTraps.length);
-                            _.each(listOfEmails, function (email) {
+                            log.info('advisories: ', advisories.length);
+
+                            let matched = false;
+                            let removedCount = 0;
+
+                            _.remove(result.data, function (d) {
+                                matched = false;
                                 _.each(matchedRecords, function (matchedRecord) {
-                                    if (email.split('@')[1] == matchedRecord.lookupAdvisoryName) {
-                                        advisoryTraps.push([email, matchedRecord.AdvisoryName]);
-                                        emailsToRemoved.push(email);
+                                    if (d[prop].split('@')[1] == matchedRecord.lookupAdvisoryName) {
+                                        advisoryTraps.push([d[prop], matchedRecord.AdvisoryName]);
+                                        matched = true;
+                                        ++removedCount;
+                                        return false;
                                     }
                                 });
+
+                                if(matched && removedCount%1000 === 0) {
+                                    console.log('Advisory matched and removed: ', removedCount);
+                                }
+                                return matched;
                             });
-                            log.info('EMAILS TO REMOVED: ', emailsToRemoved.length);
-                            listOfEmails = _.difference(listOfEmails, emailsToRemoved);
-                            _.each(listOfEmails, function (email) {
-                                if (_.includes(failedMX, email.split('@')[1])) {
-                                    mxStandardFailed.push(email);
+
+                            log.info('Removed count: ', removedCount);
+                            log.info('Advisory Traps: ', advisoryTraps.length);
+                            log.info('LIST OF EMAILS ARE: ', result.data.length);
+                            log.info('Cleaning failedMX');
+                            removedCount = 0;
+                            _.remove(result.data, function (d) {
+                                if (_.includes(failedMX, d[prop].split('@')[1])) {
+                                    ++removedCount;
+                                    return true;
+                                }
+                                else {
+                                    return false;
                                 }
                             });
-                            log.info('MX STANDARD FAILED: ', mxStandardFailed.length);
-                            listOfEmails = _.difference(listOfEmails, mxStandardFailed);
-                            log.info('After clearing the list length: ', listOfEmails.length);
+                            log.info('Removed count: ', removedCount);
+                            log.info('LIST OF EMAILS ARE: ', result.data.length);
                         }
-                        log.info('LIST OF EMAILS ARE: ', listOfEmails.length);
-
-                        emailsToRemoved = _.concat(emailsToRemoved, mxStandardFailed);
-
-                        log.info('Now emailsToRemoved: ', emailsToRemoved.length);
-                        log.info('cleaning from the original list');
-
-                        let prop = headerInfo.containsHeader ? headerInfo.emailColumnHeader : headerInfo.emailIndex;
-
-                        emailsToRemoved.forEach(function (email) {
-                            _.remove(result.data, function (d) {
-                                return d[prop] === email;
-                            });
-                        });
 
                         result.report.saveReports.push(
                             {

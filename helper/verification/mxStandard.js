@@ -161,17 +161,38 @@ let checkEmail = (results, header) => {
 
                             let matched = false;
                             let removedCount = 0;
+                            let domain = null;
+                            let email = null;
+                            let alreadyCheckedList = [];
+                            let foundInAlreadyCheckedList = null;
 
                             _.remove(result.data, function (d) {
                                 matched = false;
-                                _.each(matchedRecords, function (matchedRecord) {
-                                    if (d[prop].split('@')[1] == matchedRecord.lookupAdvisoryName) {
-                                        advisoryTraps.push([d[prop], matchedRecord.AdvisoryName]);
-                                        matched = true;
-                                        ++removedCount;
-                                        return false;
-                                    }
-                                });
+                                email = d[prop];
+                                domain = email.split('@')[1];
+
+                                foundInAlreadyCheckedList = _.find(alreadyCheckedList, _.matchesProperty('domain', domain));
+
+                                if(foundInAlreadyCheckedList) {
+                                    advisoryTraps.push([email, foundInAlreadyCheckedList.AdvisoryName]);
+                                    log.info('Found in already checked list: ', domain);
+                                    match = true;
+                                    ++removedCount;
+                                }
+                                else {
+                                    _.each(matchedRecords, function (matchedRecord) {
+                                        if (domain == matchedRecord.lookupAdvisoryName) {
+                                            advisoryTraps.push([email, matchedRecord.AdvisoryName]);
+                                            alreadyCheckedList.push({
+                                                domain: domain,
+                                                advisoryName: matchedRecord.AdvisoryName
+                                            });
+                                            matched = true;
+                                            ++removedCount;
+                                            return false;
+                                        }
+                                    });
+                                }
 
                                 if(matched && removedCount%1000 === 0) {
                                     log.info('Advisory matched and removed: ', removedCount);
